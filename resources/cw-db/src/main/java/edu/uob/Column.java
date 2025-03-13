@@ -2,7 +2,7 @@ package edu.uob;
 
 public class Column {
     private String name;
-    private String type;  // 类型，例如：INT, STRING
+    private String type;
 
     public Column(String name, String type) {
         this.name = name;
