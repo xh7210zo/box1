@@ -40,15 +40,39 @@ public class ExampleDBTests {
         sendCommandToServer("CREATE DATABASE " + randomName + ";");
         sendCommandToServer("USE " + randomName + ";");
         sendCommandToServer("CREATE TABLE marks (name, mark, pass);");
+        sendCommandToServer("CREATE TABLE students (nextname, grade, ifpass);");
         sendCommandToServer("INSERT INTO marks VALUES ('Simon', 65, TRUE);");
+        sendCommandToServer("INSERT INTO students VALUES ('Simon2', 70, YES);");
         sendCommandToServer("INSERT INTO marks VALUES ('Sion', 55, TRUE);");
+        sendCommandToServer("INSERT INTO students VALUES ('Sion2', 70, YES);");
         sendCommandToServer("INSERT INTO marks VALUES ('Rob', 35, FALSE);");
+        sendCommandToServer("INSERT INTO students VALUES ('Rob2', 70, YES);");
         sendCommandToServer("INSERT INTO marks VALUES ('Chris', 20, FALSE);");
+        sendCommandToServer("INSERT INTO students VALUES ('wyf', 70, YES);");
+        String responsee = sendCommandToServer("JOIN students AND marks ON students.id AND marks.id");
+        System.out.println("JOIN response:\n" + responsee);
         String response = sendCommandToServer("SELECT * FROM marks;");
+        System.out.println("response: " + response);
         assertTrue(response.contains("[OK]"), "A valid query was made, however an [OK] tag was not returned");
         assertFalse(response.contains("[ERROR]"), "A valid query was made, however an [ERROR] tag was returned");
         assertTrue(response.contains("Simon"), "An attempt was made to add Simon to the table, but they were not returned by SELECT *");
         assertTrue(response.contains("Chris"), "An attempt was made to add Chris to the table, but they were not returned by SELECT *");
+    }
+
+    @Test
+    public void testBasicCreateAndQueryone() {
+        String randomName = generateRandomName();
+        sendCommandToServer("CREATE DATABASE " + randomName + ";");
+        System.out.println("name: " + randomName);
+        //sendCommandToServer("DROP DATABASE " + randomName + ";");
+        sendCommandToServer("USE " + randomName + ";");
+        sendCommandToServer("CREATE TABLE marks name, mark, pass;");
+        sendCommandToServer("ALTER TABLE marks DROP mark ");
+        sendCommandToServer("DROP TABLE mark");
+        String response = sendCommandToServer("SELECT * FROM marks;");
+        System.out.println("response: " + response);
+        assertTrue(response.contains("[OK]"), "A valid query was made, however an [OK] tag was not returned");
+        assertFalse(response.contains("[ERROR]"), "A valid query was made, however an [ERROR] tag was returned");
     }
 
     // A test to make sure that querying returns a valid ID (this test also implicitly checks the "==" condition)

@@ -59,8 +59,19 @@ public class DBServer {
                     return "[ERROR] Invalid CREATE DATABASE syntax. Usage: CREATE DATABASE <dbname>";
                 }
                 String dbName = tokens[2];
-                return createDatabase(dbName) ? "[OK] Database created" : "[ERROR] Database already exists";
+                CreateDatabase createDatabase = new CreateDatabase(storageFolderPath);
+                return createDatabase.createDatabase(dbName) ? "[OK] Database created" : "[ERROR] Database already exists";
             }
+            // 假设已经在解析 SQL 语句的地方
+            if ("DROP".equals(action) && "DATABASE".equals(tokens[1].toUpperCase())) {
+                if (tokens.length != 3) {
+                    return "[ERROR] Invalid DROP DATABASE syntax. Usage: DROP DATABASE <dbname>";
+                }
+                String dbName = tokens[2];
+                DropDatabase dropDatabase = new DropDatabase(storageFolderPath);
+                return dropDatabase.dropDatabase(dbName) ? "[OK] Database dropped" : "[ERROR] Database not found";
+            }
+
             // USE <dbname>
             if ("USE".equals(action)) {
                 if (tokens.length != 2) {
@@ -78,7 +89,32 @@ public class DBServer {
                 List<String> columns = Arrays.asList(tokens).subList(3, tokens.length);
                 return createTable(tableName, columns) ? "[OK] Table created" : "[ERROR] Table already exists or invalid column names";
             }
+            // 解析 DROP TABLE 语句
+            if ("DROP".equals(action) && "TABLE".equals(tokens[1].toUpperCase())) {
+                if (tokens.length != 3) {
+                    return "[ERROR] Invalid DROP TABLE syntax. Usage: DROP TABLE <table_name>";
+                }
+                String tableName = tokens[2];
+                return dropTable(tableName) ? "[OK] Table dropped" : "[ERROR] Table not found";
+            }
+            // ALTER TABLE <TableName> ADD <AttributeName>
+            if ("ALTER".equals(action) && "TABLE".equals(tokens[1].toUpperCase())) {
+                if (tokens.length != 5) {
+                    return "[ERROR] Invalid ALTER TABLE syntax. Usage: ALTER TABLE <TableName> ADD/DROP <AttributeName>";
+                }
+                String tableName = tokens[2];
+                String alterationType = tokens[3].toUpperCase(); // "ADD" 或 "DROP"
+                String columnName = tokens[4];
 
+                // 判断操作类型
+                if ("ADD".equals(alterationType)) {
+                    return alterTableAddColumn(tableName, columnName) ? "[OK] Column added" : "[ERROR] Column already exists or invalid table";
+                } else if ("DROP".equals(alterationType)) {
+                    return alterTableDropColumn(tableName, columnName) ? "[OK] Column dropped" : "[ERROR] Column does not exist or invalid table";
+                } else {
+                    return "[ERROR] Invalid alteration type. Usage: ADD|DROP";
+                }
+            }
             // INSERT INTO <table_name> VALUES (value1, value2, ...)
             if ("INSERT".equals(action)) {
                 if (tokens.length < 4 || !"INTO".equals(tokens[1].toUpperCase())) {
@@ -131,9 +167,100 @@ public class DBServer {
                     return "[ERROR] " + e.getMessage();  // 错误处理
                 }
             }
+//UPDATE
+            if ("UPDATE".equals(action)) {
 
+                String tableName = tokens[1];
 
+                // 重新组合 SQL 语句
+                String fullSQL = String.join(" ", tokens);
 
+                // 提取 SET 和 WHERE 部分
+                int setIndex = fullSQL.indexOf("SET") + 3;
+                int whereIndex = fullSQL.indexOf("WHERE");
+
+                if (setIndex == -1 || whereIndex == -1 || setIndex >= whereIndex) {
+                    return "[ERROR] Invalid UPDATE syntax.";
+                }
+
+                String setPart = fullSQL.substring(setIndex, whereIndex).trim();
+                String wherePart = fullSQL.substring(whereIndex + 5).trim();
+
+                // 解析 SET 部分
+                String[] setColumnsValues = setPart.split("\\s*,\\s*");  // 以逗号分隔多个 `column=value` 对
+                Map<String, String> setValuesMap = new HashMap<>();
+
+                for (String setColumnValue : setColumnsValues) {
+                    String[] parts = setColumnValue.split("=", 2);  // 只拆分一次，确保值中带 `=` 不受影响
+                    if (parts.length == 2) {
+                        String column = parts[0].trim();
+                        String value = parts[1].trim().replace("'", "");  // 去掉引号
+                        setValuesMap.put(column, value);
+                    } else {
+                        return "[ERROR] Invalid SET syntax. Usage: SET <column1> = <value1>, <column2> = <value2> ...";
+                    }
+                }
+
+                // 解析 WHERE 条件
+                String[] whereParts = wherePart.split("==");
+                if (whereParts.length != 2) {
+                    return "[ERROR] Invalid WHERE syntax. Usage: WHERE <column> == <value>";
+                }
+                String whereColumn = whereParts[0].trim();
+                String whereValue = whereParts[1].trim().replace("'", "");
+
+                return updateTable(tableName, setValuesMap, whereColumn, whereValue);
+            }
+
+            //DELETE
+            if ("DELETE".equals(action)) {
+
+                String tableName = tokens[2];
+
+                // 重新构造 SQL 语句，提取 WHERE 条件
+                String fullSQL = String.join(" ", tokens);
+                int whereIndex = fullSQL.indexOf("WHERE");
+
+                if (whereIndex == -1) {
+                    return "[ERROR] Missing WHERE clause.";
+                }
+
+                String wherePart = fullSQL.substring(whereIndex + 5).trim();  // 去掉 "WHERE "
+
+                // 解析 WHERE 条件
+                String[] whereParts = wherePart.split("==", 2);
+                if (whereParts.length != 2) {
+                    return "[ERROR] Invalid WHERE syntax. Usage: WHERE <column> == <value>";
+                }
+
+                String whereColumn = whereParts[0].trim();
+                String whereValue = whereParts[1].trim().replace("'", "");  // 去掉引号
+
+                return deleteFromTable(tableName, whereColumn, whereValue);
+            }
+
+            if ("JOIN".equalsIgnoreCase(action)) {
+
+                // 提取表名和列名
+                String table1 = tokens[1];
+                String table2 = tokens[3];
+                String[] column1Parts = tokens[5].split("\\.");
+                String[] column2Parts = tokens[7].split("\\.");
+
+                if (column1Parts.length != 2 || column2Parts.length != 2) {
+                    return "[ERROR] Invalid column syntax. Use: <table1.column> AND <table2.column>";
+                }
+
+                // 确保列属于正确的表
+                if (!column1Parts[0].equalsIgnoreCase(table1) || !column2Parts[0].equalsIgnoreCase(table2)) {
+                    return "[ERROR] Columns must belong to the correct tables.";
+                }
+
+                String column1 = column1Parts[1];
+                String column2 = column2Parts[1];
+
+                return joinTables(table1, table2, column1, column2);
+            }
 
 
             return "[ERROR] Unsupported command";
@@ -145,11 +272,8 @@ public class DBServer {
     /**
      * 创建数据库（文件夹）
      */
-    public boolean createDatabase(String dbName) {
-        String dbPath = storageFolderPath + File.separator + dbName.toLowerCase();
-        File dbFolder = new File(dbPath);
-        return !dbFolder.exists() && dbFolder.mkdirs();
-    }
+
+
 
     /**
      * 创建表（文件）
@@ -166,19 +290,24 @@ public class DBServer {
             return false;
         }
 
-        Set<String> uniqueColumns = new HashSet<>(columns);
-        if (uniqueColumns.size() != columns.size()) {
-            return false; // 列名重复
+        List<String> cleanedColumns = new ArrayList<>();
+        Set<String> uniqueColumns = new HashSet<>();
+
+        for (String col : columns) {
+            String cleanCol = col.replace("(", "").replace(")", "").replace(";", "").replace(",", "").trim(); // 清理括号和分号
+            if (cleanCol.equalsIgnoreCase("id")) {
+                return false; // 不能手动包含 id 列
+            }
+            if (!uniqueColumns.add(cleanCol)) {
+                return false; // 列名重复
+            }
+            cleanedColumns.add(cleanCol);
         }
 
-        if (columns.contains("id")) {
-            return false; // 不能包含 id 列
-        }
-
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(tableFile))) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(tableFile, StandardCharsets.UTF_8))) {
             writer.write("id"); // 第一列是 id
-            for (String col : columns) {
-                writer.write("\t" + col);
+            for (String col : cleanedColumns) {
+                writer.write("\t" + col); // 使用制表符分隔列名
             }
             writer.newLine();
         }
@@ -186,7 +315,22 @@ public class DBServer {
         return true;
     }
 
+    public boolean dropTable(String tableName) {
+        if (currentDatabase == null) {
+            return false; // 没有选择数据库
+        }
 
+        String tablePath = storageFolderPath + File.separator + currentDatabase.toLowerCase() + File.separator + tableName.toLowerCase() + ".tab";
+        File tableFile = new File(tablePath);
+
+        // 检查表格是否存在
+        if (!tableFile.exists()) {
+            return false; // 表格不存在
+        }
+
+        // 删除表格文件
+        return tableFile.delete(); // 删除文件，返回删除是否成功
+    }
     /**
      * 读取表数据
      */
@@ -269,12 +413,121 @@ public class DBServer {
         }
         return "[ERROR] No matching record found.";
     }
+    public boolean alterTableAddColumn(String tableName, String columnName) {
+        if (currentDatabase == null) {
+            return false; // 没有选择数据库
+        }
 
+        String tablePath = storageFolderPath + File.separator + currentDatabase.toLowerCase() + File.separator + tableName.toLowerCase() + ".tab";
+        File tableFile = new File(tablePath);
 
+        if (!tableFile.exists()) {
+            return false; // 表不存在
+        }
 
-    /**
-     * 插入数据
-     */
+        // 读取当前表格内容
+        List<String> lines = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(tableFile, StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                lines.add(line);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        // 检查列名是否已经存在
+        String firstLine = lines.get(0); // 第一行是列名
+        String[] existingColumns = firstLine.split("\t");
+
+        for (String existingColumn : existingColumns) {
+            if (existingColumn.trim().equalsIgnoreCase(columnName)) {
+                return false; // 列已经存在
+            }
+        }
+
+        // 将新的列添加到表格的第一行和数据行中
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(tableFile, StandardCharsets.UTF_8))) {
+            // 添加新的列名
+            writer.write(firstLine + "\t" + columnName);
+            writer.newLine();
+
+            // 添加数据行
+            for (int i = 1; i < lines.size(); i++) {
+                writer.write(lines.get(i) + "\t"); // 在每一行的数据末尾添加一个新的空值
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        return true;
+    }
+    public boolean alterTableDropColumn(String tableName, String columnName) {
+        if (currentDatabase == null) {
+            return false; // 没有选择数据库
+        }
+
+        String tablePath = storageFolderPath + File.separator + currentDatabase.toLowerCase() + File.separator + tableName.toLowerCase() + ".tab";
+        File tableFile = new File(tablePath);
+
+        if (!tableFile.exists()) {
+            return false; // 表不存在
+        }
+
+        // 读取当前表格内容
+        List<String> lines = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(tableFile, StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                lines.add(line);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        // 检查列名是否存在
+        String firstLine = lines.get(0); // 第一行是列名
+        String[] existingColumns = firstLine.split("\t");
+
+        int columnIndex = -1;
+        for (int i = 0; i < existingColumns.length; i++) {
+            if (existingColumns[i].trim().equalsIgnoreCase(columnName)) {
+                columnIndex = i;
+                break;
+            }
+        }
+
+        if (columnIndex == -1) {
+            return false; // 列不存在
+        }
+
+        // 移除该列
+        List<String> updatedLines = new ArrayList<>();
+        for (String line : lines) {
+            String[] columns = line.split("\t");
+            List<String> updatedColumns = new ArrayList<>(Arrays.asList(columns));
+            updatedColumns.remove(columnIndex); // 删除指定的列
+            updatedLines.add(String.join("\t", updatedColumns));
+        }
+
+        // 将更新后的内容写回文件
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(tableFile, StandardCharsets.UTF_8))) {
+            for (String updatedLine : updatedLines) {
+                writer.write(updatedLine);
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        return true;
+    }
+
     public boolean insertIntoTable(String tableName, List<String> values) throws IOException {
         if (currentDatabase == null) {
             return false; // 没有选择数据库
@@ -292,76 +545,223 @@ public class DBServer {
         // 这里可以检查列是否匹配
         // 你需要确保 "id" 列是唯一的并且数据插入正确
 
+        // 获取表头列数
+        String[] headerColumns = existingData.get(0).split("\t");
+        int columnCount = headerColumns.length - 1; // 除去 `id` 列
+
+        // 处理 `values`，去掉括号、单引号、多余符号
+        List<String> cleanedValues = new ArrayList<>();
+        for (String value : values) {
+            String cleanValue = value.replace("(", "") // 去掉左括号
+                    .replace(")", "") // 去掉右括号
+                    .replace(";", "") // 去掉分号
+                    .replace("'", "")
+                    .replace(",", "") // 去掉单引号
+                    .trim();
+            cleanedValues.add(cleanValue);
+        }
+
+        // 检查插入值的个数是否匹配表头
+        if (cleanedValues.size() != columnCount) {
+            return false; // 数据列数不匹配
+        }
+
+        // 计算新的 `id`（保证唯一）
+        int nextId = existingData.size(); // id = 当前行数（第一行是表头）
+
         // 插入新数据
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(tableFile, true))) {
-            // 生成 id 并写入
-            int nextId = existingData.size(); // 这里可以根据你的需求生成 id
-            writer.write(nextId + "\t" + String.join("\t", values));
+            writer.write(nextId + "\t" + String.join("\t", cleanedValues));
             writer.newLine();
         }
 
         return true;
     }
 
-
-
-/*
-    // 删除记录时检查是否有外键引用
-    public boolean deleteRecord(String tableName, String recordID) throws IOException {
+    public String updateTable(String tableName, Map<String, String> setValues, String whereColumn, String whereValue) throws IOException {
         if (currentDatabase == null) {
-            throw new IOException("No database selected.");
+            return "[ERROR] No database selected.";
         }
 
-        // 使用当前选中的数据库来构建文件路径
+        String tablePath = storageFolderPath + File.separator + currentDatabase.toLowerCase() + File.separator + tableName.toLowerCase() + ".tab";
+        File tableFile = new File(tablePath);
+        if (!tableFile.exists()) {
+            return "[ERROR] Table does not exist: " + tableName;
+        }
+
+        List<List<String>> tableData = readTable(tableName);
+        if (tableData.isEmpty()) {
+            return "[ERROR] Table is empty.";
+        }
+
+        // 获取表头
+        List<String> header = tableData.get(0);
+        int whereIndex = header.indexOf(whereColumn);
+        if (whereIndex == -1) {
+            return "[ERROR] Column not found: " + whereColumn;
+        }
+
+        for (String col : setValues.keySet()) {
+            if (!header.contains(col)) {
+                return "[ERROR] Column not found in table: " + col;
+            }
+        }
+
+        boolean updated = false;
+        for (int i = 1; i < tableData.size(); i++) {
+            List<String> row = tableData.get(i);
+            if (row.get(whereIndex).replace("'", "").equals(whereValue)) {
+                for (Map.Entry<String, String> entry : setValues.entrySet()) {
+                    int colIndex = header.indexOf(entry.getKey());
+                    row.set(colIndex, entry.getValue());
+                }
+                updated = true;
+            }
+        }
+
+        if (!updated) {
+            return "[ERROR] No matching record found.";
+        }
+
+        // 重新写入文件
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(tableFile, StandardCharsets.UTF_8))) {
+            for (List<String> row : tableData) {
+                writer.write(String.join("\t", row));
+                writer.newLine();
+            }
+        }
+
+        return "[OK] Update successful.";
+    }
+
+    public String deleteFromTable(String tableName, String whereColumn, String whereValue) throws IOException {
+        if (currentDatabase == null) {
+            return "[ERROR] No database selected.";
+        }
+
         String tablePath = storageFolderPath + File.separator + currentDatabase.toLowerCase() + File.separator + tableName.toLowerCase() + ".tab";
         File tableFile = new File(tablePath);
 
         if (!tableFile.exists()) {
-            throw new IOException("Table does not exist: " + tableName);
+            return "[ERROR] Table does not exist: " + tableName;
         }
 
-        // Check if the record can be deleted (check for foreign key constraints)
-        if (!canDeleteRecord(tableName, recordID)) {
-            return false;
+        List<List<String>> tableData = readTable(tableName);
+        if (tableData.isEmpty()) {
+            return "[ERROR] Table is empty.";
         }
 
-        // Delete the record from the table
-        List<List<String>> tableData = loadTable( tableName);
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(tableFile))) {
-            writer.write(tableData.get(0).get(0)); // Write the table header
-            writer.newLine();
-            for (int i = 1; i < tableData.size(); i++) {
-                // Write all rows except the one to delete
-                if (!tableData.get(i).get(0).equals(recordID)) {
-                    writer.write(String.join("\t", tableData.get(i)));
-                    writer.newLine();
+        // 获取表头
+        List<String> header = tableData.get(0);
+        int whereIndex = header.indexOf(whereColumn);
+
+        if (whereIndex == -1) {
+            return "[ERROR] Column not found: " + whereColumn;
+        }
+
+        // 过滤出需要保留的数据
+        List<List<String>> updatedTableData = new ArrayList<>();
+        updatedTableData.add(header);  // 保留表头
+
+        boolean rowDeleted = false;
+
+        for (int i = 1; i < tableData.size(); i++) {
+            List<String> row = tableData.get(i);
+            String rowValue = row.get(whereIndex).replace("'", "").trim();
+
+            if (!rowValue.equals(whereValue)) {
+                updatedTableData.add(row);  // 仅保留未匹配的行
+            } else {
+                rowDeleted = true;
+            }
+        }
+
+        if (!rowDeleted) {
+            return "[ERROR] No matching record found.";
+        }
+
+        // 覆盖写回文件
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(tableFile, StandardCharsets.UTF_8))) {
+            for (List<String> row : updatedTableData) {
+                writer.write(String.join("\t", row));
+                writer.newLine();
+            }
+        }
+
+        return "[OK] Record deleted.";
+    }
+
+    public String joinTables(String table1, String table2, String column1, String column2) throws IOException {
+        if (currentDatabase == null) {
+            return "[ERROR] No database selected.";
+        }
+
+        // 读取两个表的数据
+        List<List<String>> table1Data = readTable(table1);
+        List<List<String>> table2Data = readTable(table2);
+
+        if (table1Data.isEmpty() || table2Data.isEmpty()) {
+            return "[ERROR] One or both tables are empty.";
+        }
+
+        // 解析表头
+        List<String> header1 = table1Data.get(0);
+        List<String> header2 = table2Data.get(0);
+
+        System.out.println("[DEBUG] Table 1 Header: " + header1);
+        System.out.println("[DEBUG] Table 2 Header: " + header2);
+
+        // 获取 JOIN 列索引
+        int index1 = header1.indexOf(column1);
+        int index2 = header2.indexOf(column2);
+
+        if (index1 == -1) return "[ERROR] Column not found in " + table1 + ": " + column1;
+        if (index2 == -1) return "[ERROR] Column not found in " + table2 + ": " + column2;
+
+        System.out.println("[DEBUG] JOIN ON " + table1 + "." + column1 + " (Index: " + index1 + ") AND " + table2 + "." + column2 + " (Index: " + index2 + ")");
+
+        // 生成 JOIN 结果表头
+        List<String> joinedHeader = new ArrayList<>(header1);
+        joinedHeader.addAll(header2);
+
+        // 进行 INNER JOIN
+        List<List<String>> joinResult = new ArrayList<>();
+        joinResult.add(joinedHeader); // 先添加表头
+
+        for (int i = 1; i < table1Data.size(); i++) {
+            List<String> row1 = table1Data.get(i);
+            String key1 = row1.get(index1).trim();
+
+            for (int j = 1; j < table2Data.size(); j++) {
+                List<String> row2 = table2Data.get(j);
+                String key2 = row2.get(index2).trim();
+
+                if (key1.equals(key2)) { // INNER JOIN 匹配
+                    List<String> joinedRow = new ArrayList<>(row1);
+                    joinedRow.addAll(row2);
+                    joinResult.add(joinedRow);
+                    System.out.println("[DEBUG] MATCH FOUND: " + row1 + " <-> " + row2);
                 }
             }
         }
 
-        return true;
-    }
-
-    private boolean canDeleteRecord(String tableName, String recordID) throws IOException {
-        // 遍历所有表，检查是否有外键引用了该 recordID
-        File folder = new File(storageFolderPath);
-        File[] files = folder.listFiles((dir, name) -> name.endsWith(".tab"));
-
-        if (files == null) return true;
-
-        for (File file : files) {
-            List<List<String>> data = loadTable("shop");
-            for (List<String> row : data) {
-                if (row.contains(recordID)) {
-                    return false;
-                }
-            }
+        // 如果没有匹配数据
+        if (joinResult.size() == 1) {
+            return "[ERROR] No matching records found.";
         }
-        return true;
+
+        // 格式化 JOIN 结果输出
+        StringBuilder result = new StringBuilder();
+        for (List<String> row : joinResult) {
+            result.append(String.join("\t", row)).append("\n");
+        }
+
+        return "[OK]\n" + result.toString();
     }
 
 
-*/
+
+
     //  === Methods below handle networking aspects of the project - you will not need to change these ! ===
 
     public void blockingListenOn(int portNumber) throws IOException {
