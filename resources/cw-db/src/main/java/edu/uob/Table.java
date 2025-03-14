@@ -1,36 +1,84 @@
 package edu.uob;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 
 public class Table {
-    private String name;
-    private List<Column> columns;
-    private List<Row> rows;
+    private final String storageFolderPath;
+    private String currentDatabase;
 
-    public Table(String name) {
-        this.name = name;
-        this.columns = new ArrayList<>();
-        this.rows = new ArrayList<>();
+    public Table(String storageFolderPath) {
+        this.storageFolderPath = storageFolderPath;
     }
 
-    public String getName() {
-        return name;
+    public void setCurrentDatabase(String databaseName) {
+        this.currentDatabase = databaseName;
     }
 
-    public void addColumn(Column column) {
-        columns.add(column);
-    }
+    public boolean createTable(String tableName, List<String> columns) throws IOException {
+        if (currentDatabase == null) {
+            System.out.println("[ERROR] No database selected.");
+            return false;
+        }
 
-    public void addRow(Row row) {
-        rows.add(row);
-    }
+        String tablePath = storageFolderPath + File.separator + currentDatabase.toLowerCase() + File.separator + tableName.toLowerCase() + ".tab";
+        File tableFile = new File(tablePath);
 
-    public List<Row> getRows() {
-        return rows;
-    }
+        if (tableFile.exists()) {
+            System.out.println("[ERROR] Table already exists: " + tableName);
+            return false;
+        }
 
-    public List<Column> getColumns() {
-        return columns;
+        List<String> cleanedColumns = new ArrayList<>();
+        Set<String> uniqueColumns = new HashSet<>();
+
+        for (String col : columns) {
+            String cleanCol = col.replace("(", "")
+                    .replace(")", "")
+                    .replace(";", "")
+                    .replace(",", "")
+                    .trim();
+
+            if (cleanCol.equalsIgnoreCase("id")) {
+                System.out.println("[ERROR] Column name 'id' is not allowed.");
+                return false;
+            }
+
+            if (!uniqueColumns.add(cleanCol)) {
+                System.out.println("[ERROR] Duplicate column name found: " + cleanCol);
+                return false;
+            }
+            cleanedColumns.add(cleanCol);
+        }
+
+        File databaseFolder = new File(storageFolderPath + File.separator + currentDatabase.toLowerCase());
+        if (!databaseFolder.exists()) {
+            databaseFolder.mkdirs();
+        }
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(tableFile, StandardCharsets.UTF_8))) {
+            writer.write("id");
+            for (String col : cleanedColumns) {
+                writer.write("\t" + col);
+            }
+            writer.newLine();
+            System.out.println("[OK] Table created: " + tableName);
+            return true;
+        } catch (IOException e) {
+            System.out.println("[ERROR] Failed to create table: " + e.getMessage());
+            return false;
+        }
+    }
+    public boolean dropTable(String tableName) {
+        if (currentDatabase == null) {
+            return false;
+        }
+
+        String cleanTableName = tableName.replace(";", "").trim();
+        String tablePath = storageFolderPath + File.separator + currentDatabase.toLowerCase() + File.separator + cleanTableName.toLowerCase() + ".tab";
+        File tableFile = new File(tablePath);
+
+        return tableFile.exists() && tableFile.delete();
     }
 }
