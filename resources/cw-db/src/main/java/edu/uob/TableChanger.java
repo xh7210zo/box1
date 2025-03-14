@@ -198,10 +198,10 @@ public class TableChanger {
 
         boolean updated = false;
         for (int i = 1; i < tableData.size(); i++) {
-            List<String> row = new ArrayList<>(tableData.get(i));  // 变成可变List
+            List<String> row = new ArrayList<>(tableData.get(i));
 
             while (row.size() < header.size()) {
-                row.add("");  // 确保不会抛异常
+                row.add("");
             }
 
             String rowValue = row.get(whereIndex).replace("'", "").trim();
@@ -210,7 +210,7 @@ public class TableChanger {
                     int colIndex = header.indexOf(entry.getKey());
                     row.set(colIndex, entry.getValue());
                 }
-                tableData.set(i, row);  // 重要：更新 tableData
+                tableData.set(i, row);
                 updated = true;
             }
         }
@@ -229,14 +229,6 @@ public class TableChanger {
         return "[OK] Update successful.";
     }
 
-
-
-
-    private String cleanWhereClause(String whereClause) {
-        return whereClause.replaceAll("(?<=[a-zA-Z0-9])([><=!]+)(?=[a-zA-Z0-9])", " $1 ");
-    }
-
-    // 修改 deleteFromTable 以支持不同运算符
     public String deleteFromTable(String tableName, String whereColumn, String whereValue, String operator) throws IOException {
         if (currentDatabase == null) {
             return "[ERROR] No database selected.";
@@ -295,10 +287,8 @@ public class TableChanger {
         return "[OK] Record deleted.";
     }
 
-    // 判断行值是否满足删除条件
     private boolean matchesCondition(String rowValue, String whereValue, String operator) {
         try {
-            // 尝试解析为数字进行比较
             double rowNum = Double.parseDouble(rowValue);
             double whereNum = Double.parseDouble(whereValue);
 
@@ -311,7 +301,6 @@ public class TableChanger {
                 case "<=": return rowNum <= whereNum;
             }
         } catch (NumberFormatException e) {
-            // 作为字符串进行比较
             switch (operator) {
                 case "==": return rowValue.equals(whereValue);
                 case "!=": return !rowValue.equals(whereValue);
@@ -333,10 +322,9 @@ public class TableChanger {
             return "[ERROR] One or both tables are empty.";
         }
 
-        List<String> header1 = table1Data.get(0); // 表1的表头
-        List<String> header2 = table2Data.get(0); // 表2的表头
+        List<String> header1 = table1Data.get(0);
+        List<String> header2 = table2Data.get(0);
 
-        // 检查列名是否在表头中存在
         if (!header1.contains(column1)) {
             return "[ERROR] Column '" + column1 + "' not found in " + table1;
         }
@@ -344,84 +332,72 @@ public class TableChanger {
             return "[ERROR] Column '" + column2 + "' not found in " + table2;
         }
 
-        // 合并表头 - 这里丢弃了匹配的列并为列名加上表名
         List<String> joinedHeader = new ArrayList<>();
-        boolean addedCourseworkId = false; // 用来检查 coursewrok.id 是否已经添加
+        boolean addedCourseworkId = false;
 
-        // 添加表1的数据（丢弃匹配的列）
         for (String col : header1) {
             if (col.equals(column1)) {
-                continue; // 忽略匹配列
+                continue;
             }
             if (col.equals("id") && !addedCourseworkId) {
-                joinedHeader.add("id"); // 只保留一次 id 列
-                addedCourseworkId = true; // 标记 id 列已经添加
+                joinedHeader.add("id");
+                addedCourseworkId = true;
             } else {
-                joinedHeader.add(table1 + "." + col); // 为表1的列添加前缀
+                joinedHeader.add(table1 + "." + col);
             }
         }
 
-        // 添加表2的数据（丢弃匹配的列）
         for (String col : header2) {
             if (col.equals(column2)) {
-                continue; // 忽略匹配列
+                continue;
             }
             if (col.equals("id")) {
-                continue; // 不添加表2的 id 列
+                continue;
             }
-            joinedHeader.add(table2 + "." + col); // 为表2的列添加前缀
+            joinedHeader.add(table2 + "." + col);
         }
 
-        // 存储 JOIN 结果
         List<List<String>> joinResult = new ArrayList<>();
-        joinResult.add(joinedHeader); // 添加表头
+        joinResult.add(joinedHeader);
 
-        // 执行 JOIN 操作，并丢弃匹配的列
         for (int i = 1; i < table1Data.size(); i++) {
             List<String> row1 = table1Data.get(i);
-            String key1 = row1.get(header1.indexOf(column1)).trim(); // 表1中匹配的列值
+            String key1 = row1.get(header1.indexOf(column1)).trim();
 
             for (int j = 1; j < table2Data.size(); j++) {
                 List<String> row2 = table2Data.get(j);
-                String key2 = row2.get(header2.indexOf(column2)).trim(); // 表2中匹配的列值
+                String key2 = row2.get(header2.indexOf(column2)).trim();
 
-                // 如果两个列值匹配，则 JOIN
                 if (key1.equals(key2)) {
                     List<String> joinedRow = new ArrayList<>();
-                    joinedRow.add(row1.get(header1.indexOf("id"))); // 添加表1的id
+                    joinedRow.add(row1.get(header1.indexOf("id")));
 
-                    // 添加表1的数据（丢弃匹配的列）
                     for (int col = 0; col < row1.size(); col++) {
-                        if (!header1.get(col).equals(column1) && !header1.get(col).equals("id")) { // 丢弃匹配的列和 id 列
+                        if (!header1.get(col).equals(column1) && !header1.get(col).equals("id")) {
                             joinedRow.add(row1.get(col));
                         }
                     }
 
-                    // 添加表2的数据（丢弃匹配的列）
                     for (int col = 0; col < row2.size(); col++) {
-                        if (!header2.get(col).equals(column2) && !header2.get(col).equals("id")) { // 丢弃匹配的列和 id 列
+                        if (!header2.get(col).equals(column2) && !header2.get(col).equals("id")) {
                             joinedRow.add(row2.get(col));
                         }
                     }
 
-                    // 将JOIN后的行添加到结果中
                     joinResult.add(joinedRow);
                 }
             }
         }
 
-        // 如果没有找到匹配的记录
         if (joinResult.size() == 1) {
             return "[ERROR] No matching records found.";
         }
 
-        // 构造结果输出
         StringBuilder result = new StringBuilder();
         for (List<String> row : joinResult) {
             result.append(String.join("\t", row)).append("\n");
         }
 
-        return "[OK]\n" + result.toString();
+        return "[OK]\n" + result;
     }
-
 }
