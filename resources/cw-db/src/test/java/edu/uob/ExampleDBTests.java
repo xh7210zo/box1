@@ -42,16 +42,16 @@ public class ExampleDBTests {
         sendCommandToServer("CREATE TABLE marks (name, mark, pass);");
         sendCommandToServer("CREATE TABLE students (nextname, grade, ifpass);");
         sendCommandToServer("INSERT INTO marks VALUES ('Simon', 65, TRUE);");
-        sendCommandToServer("INSERT INTO students VALUES ('Simon2', 70, YES);");
+       // sendCommandToServer("INSERT INTO students VALUES ('Simon2', 70, YES);");
         sendCommandToServer("INSERT INTO marks VALUES ('Sion', 55, TRUE);");
-        sendCommandToServer("INSERT INTO students VALUES ('Sion2', 70, YES);");
+      //  sendCommandToServer("INSERT INTO students VALUES ('Sion2', 70, YES);");
         sendCommandToServer("INSERT INTO marks VALUES ('Rob', 35, FALSE);");
-        sendCommandToServer("INSERT INTO students VALUES ('Rob2', 70, YES);");
+      //  sendCommandToServer("INSERT INTO students VALUES ('Rob2', 70, YES);");
         sendCommandToServer("INSERT INTO marks VALUES ('Chris', 20, FALSE);");
-        sendCommandToServer("INSERT INTO students VALUES ('wyf', 70, YES);");
-        String responsee = sendCommandToServer("JOIN students AND marks ON students.id AND marks.id");
-        System.out.println("JOIN response:\n" + responsee);
-        String response = sendCommandToServer("SELECT * FROM marks;");
+       // sendCommandToServer("INSERT INTO students VALUES ('wyf', 70, YES);");
+       // String responsee = sendCommandToServer("JOIN students AND marks ON students.id AND marks.id");
+       // System.out.println("JOIN response:\n" + responsee);
+        String response = sendCommandToServer("SELECT * FROM marks ;");
         System.out.println("response: " + response);
         assertTrue(response.contains("[OK]"), "A valid query was made, however an [OK] tag was not returned");
         assertFalse(response.contains("[ERROR]"), "A valid query was made, however an [ERROR] tag was returned");
@@ -74,7 +74,44 @@ public class ExampleDBTests {
         assertTrue(response.contains("[OK]"), "A valid query was made, however an [OK] tag was not returned");
         assertFalse(response.contains("[ERROR]"), "A valid query was made, however an [ERROR] tag was returned");
     }
+    @Test
+    public void testBasicCreateAndQuerytwo() {
+       /* sendCommandToServer("CREATE DATABASE test");
+        sendCommandToServer("USE test");
+        sendCommandToServer("CREATE TABLE coursework (task submission);");
+        sendCommandToServer("INSERT INTO coursework VALUES (OXO, 3);");
+        sendCommandToServer("INSERT INTO coursework VALUES (DB, 1);");
+        sendCommandToServer("INSERT INTO coursework VALUES (OXO, 4);");
+        sendCommandToServer("INSERT INTO coursework VALUES (STAG, 2);");
 
+        */
+        sendCommandToServer("USE test;");
+       // String response = sendCommandToServer("SELECT * FROM coursework;");
+       // System.out.println("response: " + response);
+        String responseee = sendCommandToServer("DROP DATABASE test;");
+        System.out.println("response: " + responseee);
+        /*sendCommandToServer("USE " + randomName + ";");
+        sendCommandToServer("CREATE TABLE marks (name, mark, pass);");
+        sendCommandToServer("CREATE TABLE students (nextname, grade, ifpass);");
+        sendCommandToServer("INSERT INTO marks VALUES ('Simon', 65, TRUE);");
+        sendCommandToServer("INSERT INTO students VALUES ('Simon2', 70, YES);");
+        sendCommandToServer("INSERT INTO marks VALUES ('Sion', 55, TRUE);");
+        sendCommandToServer("INSERT INTO students VALUES ('Sion2', 70, YES);");
+        sendCommandToServer("INSERT INTO marks VALUES ('Rob', 35, FALSE);");
+        sendCommandToServer("INSERT INTO students VALUES ('Rob2', 70, YES);");
+        sendCommandToServer("INSERT INTO marks VALUES ('Chris', 20, FALSE);");
+        sendCommandToServer("INSERT INTO students VALUES ('wyf', 70, YES);");
+        String responsee = sendCommandToServer("JOIN students AND marks ON students.id AND marks.id");
+        System.out.println("JOIN response:\n" + responsee);
+        String response = sendCommandToServer("SELECT * FROM marks;");
+        System.out.println("response: " + response);
+        assertTrue(response.contains("[OK]"), "A valid query was made, however an [OK] tag was not returned");
+        assertFalse(response.contains("[ERROR]"), "A valid query was made, however an [ERROR] tag was returned");
+        assertTrue(response.contains("Simon"), "An attempt was made to add Simon to the table, but they were not returned by SELECT *");
+        assertTrue(response.contains("Chris"), "An attempt was made to add Chris to the table, but they were not returned by SELECT *");
+
+         */
+    }
     // A test to make sure that querying returns a valid ID (this test also implicitly checks the "==" condition)
     // (these IDs are used to create relations between tables, so it is essential that suitable IDs are being generated and returned !)
     @Test
@@ -126,6 +163,10 @@ public class ExampleDBTests {
         String response = sendCommandToServer("SELECT * FROM libraryfines;");
         assertTrue(response.contains("[ERROR]"), "An attempt was made to access a non-existent table, however an [ERROR] tag was not returned");
         assertFalse(response.contains("[OK]"), "An attempt was made to access a non-existent table, however an [OK] tag was returned");
+    }
+    @Test
+    public void testForErrorTagtwo() {
+        sendCommandToServer("CREATE DATABASE markbook;");
     }
 
 }

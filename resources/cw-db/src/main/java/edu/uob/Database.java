@@ -18,7 +18,6 @@ public class Database {
         if (dbFolder.exists()) {
             return false;
         }
-
         return dbFolder.mkdirs();
     }
     public boolean dropDatabase(String dbName) {
