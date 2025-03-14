@@ -5,12 +5,12 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.*;
 
-public class ChangeTable {
+public class TableChanger {
 
     private String storageFolderPath;
     private String currentDatabase;
 
-    public ChangeTable(String storageFolderPath, String currentDatabase) {
+    public TableChanger(String storageFolderPath, String currentDatabase) {
         this.storageFolderPath = storageFolderPath;
         this.currentDatabase = currentDatabase;
     }

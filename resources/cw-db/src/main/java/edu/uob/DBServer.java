@@ -109,7 +109,7 @@ public class DBServer {
                 String alterationType = tokens[3].toUpperCase();
                 String columnName = tokens[4];
 
-                ChangeTable alterTableHandler = new ChangeTable(storageFolderPath, currentDatabase);
+                TableChanger alterTableHandler = new TableChanger(storageFolderPath, currentDatabase);
                 if ("ADD".equals(alterationType)) {
                     return alterTableHandler.alterTableAddColumn(tableName, columnName) ? "[OK] Column added" : "[ERROR] Column already exists or invalid table";
                 } else if ("DROP".equals(alterationType)) {
@@ -125,7 +125,7 @@ public class DBServer {
                     return "[ERROR] Invalid INSERT syntax. Usage: INSERT INTO <table_name> VALUES (value1, value2, ...)";
                 }
                 String tableName = tokens[2];
-                ChangeTable insertTableHandler = new ChangeTable(storageFolderPath, currentDatabase);
+                TableChanger insertTableHandler = new TableChanger(storageFolderPath, currentDatabase);
 
                 List<String> values = Arrays.asList(tokens).subList(4, tokens.length);
 
@@ -205,7 +205,7 @@ public class DBServer {
                 }
                 String whereColumn = whereParts[0].trim();
                 String whereValue = whereParts[1].trim().replace("'", "");
-                ChangeTable updateTableHandler = new ChangeTable(storageFolderPath, currentDatabase);
+                TableChanger updateTableHandler = new TableChanger(storageFolderPath, currentDatabase);
                 return updateTableHandler.updateTable(tableName, setValuesMap, whereColumn, whereValue);
             }
 
@@ -234,7 +234,7 @@ public class DBServer {
                 String whereColumn = whereParts[0].trim();
                 String whereValue = whereParts[1].trim().replace("'", "");
 
-                ChangeTable deleteTableHandler = new ChangeTable(storageFolderPath, currentDatabase);
+                TableChanger deleteTableHandler = new TableChanger(storageFolderPath, currentDatabase);
                 return deleteTableHandler.deleteFromTable(tableName, whereColumn, whereValue);
             }
 
@@ -256,7 +256,7 @@ public class DBServer {
 
                 String column1 = column1Parts[1];
                 String column2 = column2Parts[1];
-                ChangeTable joinTableHandler = new ChangeTable(storageFolderPath, currentDatabase);
+                TableChanger joinTableHandler = new TableChanger(storageFolderPath, currentDatabase);
                 return joinTableHandler.joinTables(table1, table2, column1, column2);
             }
 
