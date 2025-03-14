@@ -51,13 +51,16 @@ public class DBServer {
 
             // CREATE DATABASE
             if ("CREATE".equals(action) && "DATABASE".equals(tokens[1].toUpperCase())) {
+
+                //check if ends with ";",and everything down is the same
                 if (!tokens[tokens.length - 1].endsWith(";")) {
                     return "[ERROR] Semi-colon missing at end of line.";
                 }
+                //check if command is correct
                 if (tokens.length != 3) {
                     return "[ERROR] Invalid CREATE DATABASE syntax.";
                 }
-                String dbName = tokens[2].replace(";", "");;
+                String dbName = tokens[2].replace(";", "");
                 Database createDatabase = new Database(storageFolderPath);
                 return createDatabase.createDatabase(dbName) ? "[OK] Database created" : "[ERROR] Database already exists";
             }
@@ -95,7 +98,11 @@ public class DBServer {
                 if (tokens.length < 4) {
                     return "[ERROR] Invalid CREATE TABLE syntax.";
                 }
+
+                //get table name
                 String tableName = tokens[2];
+
+                //get the list of column's names
                 List<String> columns = Arrays.asList(tokens).subList(3, tokens.length);
                 Table createTableHandler = new Table(storageFolderPath);
                 createTableHandler.setCurrentDatabase(currentDatabase);
@@ -110,6 +117,8 @@ public class DBServer {
                 if (tokens.length != 3) {
                     return "[ERROR] Invalid DROP TABLE syntax.";
                 }
+
+                //get the name of table
                 String tableName = tokens[2];
                 Table dropTableHandler = new Table(storageFolderPath);
                 dropTableHandler.setCurrentDatabase(currentDatabase);
@@ -129,6 +138,8 @@ public class DBServer {
                 String columnName = tokens[4].replace(";","");
 
                 TableChanger alterTableHandler = new TableChanger(storageFolderPath, currentDatabase);
+
+                //different operation type
                 if ("ADD".equals(alterationType)) {
                     return alterTableHandler.alterTableAddColumn(tableName, columnName) ? "[OK] Column added" : "[ERROR] Column already exists or invalid table";
                 } else if ("DROP".equals(alterationType)) {
@@ -149,6 +160,7 @@ public class DBServer {
                 String tableName = tokens[2];
                 TableChanger insertTableHandler = new TableChanger(storageFolderPath, currentDatabase);
 
+                //get the values to be inserted
                 List<String> values = Arrays.asList(tokens).subList(4, tokens.length);
 
                 return insertTableHandler.insertIntoTable(tableName, values) ? "[OK] Record inserted" : "[ERROR] Invalid number of values for the table";
@@ -159,6 +171,8 @@ public class DBServer {
                 if (!tokens[tokens.length - 1].endsWith(";")) {
                     return "[ERROR] Semi-colon missing at end of line.";
                 }
+
+                //if select all the columns
                 if (tokens.length == 4 && "*".equals(tokens[1]) && "FROM".equalsIgnoreCase(tokens[2])) {
                     String tableName = tokens[3];
 
@@ -170,6 +184,7 @@ public class DBServer {
                             return "[ERROR] Table is empty";
                         }
 
+                        //build the outcome of the query
                         StringBuilder result = new StringBuilder();
                         for (List<String> row : tableData) {
                             result.append(String.join("\t", row));
@@ -185,12 +200,14 @@ public class DBServer {
                         return "[ERROR] Semi-colon missing at end of line.";
                     }
 
+                    //column name and table name
                     String wildAttribList = tokens[1];
-
                     String tableName = tokens[3];
 
+                    //query with WHERE and other conditions
                     String wherePart = null;
                     if ( "WHERE".equalsIgnoreCase(tokens[4])) {
+                        //clean the condition, separate with space
                         wherePart = String.join(" ", Arrays.copyOfRange(tokens, 5, tokens.length));
                         wherePart = wherePart.replace(";", "");
                         wherePart = wherePart.replaceAll("(?<=\\w)([><=!]+)(?=\\d)", " $1 ");
@@ -201,7 +218,7 @@ public class DBServer {
                     }
 
                     TableQuery tableQuery = new TableQuery(storageFolderPath, currentDatabase);
-                    return tableQuery.selectFromTable(tableName, wildAttribList, wherePart);
+                    return tableQuery.selectTable(tableName, wildAttribList, wherePart);
                 } else {
                     return "[ERROR] Invalid SELECT syntax.";
                 }
@@ -213,9 +230,9 @@ public class DBServer {
                     return "[ERROR] Semi-colon missing at end of line.";
                 }
                 String tableName = tokens[1];
-
                 String fullSQL = String.join(" ", tokens);
 
+                //find the position of SET and WHERE conditions
                 int setIndex = fullSQL.indexOf("SET") + 3;
                 int whereIndex = fullSQL.indexOf("WHERE");
 
@@ -223,12 +240,15 @@ public class DBServer {
                     return "[ERROR] Invalid UPDATE syntax.";
                 }
 
+                //get the parts of SET and WHERE conditions
                 String setPart = fullSQL.substring(setIndex, whereIndex).trim();
                 String wherePart = fullSQL.substring(whereIndex + 5).trim();
 
+                //split column and value of SET part
                 String[] setColumnsValues = setPart.split("\\s*,\\s*");
                 Map<String, String> setValuesMap = new HashMap<>();
 
+                //parse the part of SET
                 for (String setColumnValue : setColumnsValues) {
                     String[] parts = setColumnValue.split("=", 2);
                     if (parts.length == 2) {
@@ -243,6 +263,7 @@ public class DBServer {
                     }
                 }
 
+                //parse the part of WHERE conditions
                 String[] whereParts = wherePart.split("==");
                 if (whereParts.length != 2) {
                     return "[ERROR] Invalid WHERE syntax. ";
@@ -268,6 +289,7 @@ public class DBServer {
                     return "[ERROR] Missing WHERE clause.";
                 }
 
+                //same as above
                 String wherePart = fullSQL.substring(whereIndex + 5).trim();
                 wherePart = wherePart.replace(";", "");
                 wherePart = wherePart.replaceAll("(?<=\\w)([><=!]+)(?=\\d)", " $1 ");
@@ -280,6 +302,7 @@ public class DBServer {
                     return "[ERROR] Cannot delete from the ID column.";
                 }
 
+                //parse operators of the WHERE part
                 String[] operators = {"==", "!=", ">=", "<=", ">", "<"};
                 String whereColumn = null, whereValue = null, operator = null;
 

@@ -27,6 +27,7 @@ public class TableChanger {
             return false;
         }
 
+        //get the content of the table file
         List<String> lines = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(tableFile, StandardCharsets.UTF_8))) {
             String line;
@@ -38,19 +39,23 @@ public class TableChanger {
             return false;
         }
 
+        //get the first line
         String firstLine = lines.get(0);
         String[] existingColumns = firstLine.split("\t");
 
+        //check if the colum exists
         for (String existingColumn : existingColumns) {
             if (existingColumn.trim().equalsIgnoreCase(columnName)) {
                 return false;
             }
         }
 
+        //write a new column
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(tableFile, StandardCharsets.UTF_8))) {
             writer.write(firstLine + "\t" + columnName);
             writer.newLine();
 
+            //write in other data
             for (int i = 1; i < lines.size(); i++) {
                 writer.write(lines.get(i) + "\t");
                 writer.newLine();
@@ -76,6 +81,7 @@ public class TableChanger {
             return false;
         }
 
+        //read the content
         List<String> lines = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(tableFile, StandardCharsets.UTF_8))) {
             String line;
@@ -90,6 +96,7 @@ public class TableChanger {
         String firstLine = lines.get(0);
         String[] existingColumns = firstLine.split("\t");
 
+        //get the index of the column
         int columnIndex = -1;
         for (int i = 0; i < existingColumns.length; i++) {
             if (existingColumns[i].trim().equalsIgnoreCase(columnName)) {
@@ -98,10 +105,12 @@ public class TableChanger {
             }
         }
 
+        //if cant find the column
         if (columnIndex == -1) {
             return false;
         }
 
+        //delete the column and update other data
         List<String> updatedLines = new ArrayList<>();
         for (String line : lines) {
             String[] columns = line.split("\t");
@@ -110,6 +119,7 @@ public class TableChanger {
             updatedLines.add(String.join("\t", updatedColumns));
         }
 
+        //write the updated date to file
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(tableFile, StandardCharsets.UTF_8))) {
             for (String updatedLine : updatedLines) {
                 writer.write(updatedLine);
@@ -139,6 +149,7 @@ public class TableChanger {
         String[] headerColumns = existingData.get(0).split("\t");
         int columnCount = headerColumns.length - 1;
 
+        //clean the value to be inserted
         List<String> cleanedValues = new ArrayList<>();
         for (String value : values) {
             String cleanValue = value.replace("(", "")
@@ -150,12 +161,15 @@ public class TableChanger {
             cleanedValues.add(cleanValue);
         }
 
+        //check if the values match with columns
         if (cleanedValues.size() != columnCount) {
             return false;
         }
 
+        //get next id
         int nextId = existingData.size();
 
+        //write
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(tableFile, true))) {
             writer.write(nextId + "\t" + String.join("\t", cleanedValues));
             writer.newLine();
@@ -181,12 +195,14 @@ public class TableChanger {
             return "[ERROR] Table is empty.";
         }
 
+        //get the header and find the index of the wherecolumn
         List<String> header = tableData.get(0);
         int whereIndex = header.indexOf(whereColumn);
         if (whereIndex == -1) {
             return "[ERROR] Column not found: " + whereColumn;
         }
 
+        //CHECK if the column to be updated is valid
         for (String col : setValues.keySet()) {
             if ("id".equalsIgnoreCase(col)) {
                 return "[ERROR] Cannot update the ID column.";
@@ -196,6 +212,7 @@ public class TableChanger {
             }
         }
 
+        //update data
         boolean updated = false;
         for (int i = 1; i < tableData.size(); i++) {
             List<String> row = new ArrayList<>(tableData.get(i));
@@ -204,6 +221,7 @@ public class TableChanger {
                 row.add("");
             }
 
+            //if the column matches, update the column
             String rowValue = row.get(whereIndex).replace("'", "").trim();
             if (rowValue.equals(whereValue)) {
                 for (Map.Entry<String, String> entry : setValues.entrySet()) {
@@ -241,6 +259,7 @@ public class TableChanger {
             return "[ERROR] Table does not exist: " + tableName;
         }
 
+        //id column cant be deleted
         if ("id".equalsIgnoreCase(whereColumn)) {
             return "[ERROR] Cannot delete from the ID column.";
         }
@@ -258,6 +277,7 @@ public class TableChanger {
             return "[ERROR] Column not found: " + whereColumn;
         }
 
+        //delete the record that matches
         List<List<String>> updatedTableData = new ArrayList<>();
         updatedTableData.add(header);
         boolean rowDeleted = false;
@@ -273,6 +293,7 @@ public class TableChanger {
             }
         }
 
+        //if no column is deleted
         if (!rowDeleted) {
             return "[ERROR] No matching record found.";
         }
@@ -287,6 +308,7 @@ public class TableChanger {
         return "[OK] Record deleted.";
     }
 
+    //if data of the file matches the condition
     private boolean matchesCondition(String rowValue, String whereValue, String operator) {
         try {
             double rowNum = Double.parseDouble(rowValue);
@@ -314,6 +336,7 @@ public class TableChanger {
             return "[ERROR] No database selected.";
         }
 
+        //read content of two tables
         TableReader tableReader = new TableReader(storageFolderPath, currentDatabase);
         List<List<String>> table1Data = tableReader.readTable(table1);
         List<List<String>> table2Data = tableReader.readTable(table2);
@@ -322,6 +345,7 @@ public class TableChanger {
             return "[ERROR] One or both tables are empty.";
         }
 
+        //get two headers
         List<String> header1 = table1Data.get(0);
         List<String> header2 = table2Data.get(0);
 
@@ -332,9 +356,11 @@ public class TableChanger {
             return "[ERROR] Column '" + column2 + "' not found in " + table2;
         }
 
+        //create the header of the joined table
         List<String> joinedHeader = new ArrayList<>();
         boolean addedCourseworkId = false;
 
+        //add the header of table1
         for (String col : header1) {
             if (col.equals(column1)) {
                 continue;
@@ -347,6 +373,7 @@ public class TableChanger {
             }
         }
 
+        //add the header of table2
         for (String col : header2) {
             if (col.equals(column2)) {
                 continue;
@@ -357,9 +384,11 @@ public class TableChanger {
             joinedHeader.add(table2 + "." + col);
         }
 
+        //store the joined outcome
         List<List<String>> joinResult = new ArrayList<>();
         joinResult.add(joinedHeader);
 
+        //join the row data of two tables
         for (int i = 1; i < table1Data.size(); i++) {
             List<String> row1 = table1Data.get(i);
             String key1 = row1.get(header1.indexOf(column1)).trim();
@@ -389,10 +418,12 @@ public class TableChanger {
             }
         }
 
+        //if cant find record that matches
         if (joinResult.size() == 1) {
             return "[ERROR] No matching records found.";
         }
 
+        //get result
         StringBuilder result = new StringBuilder();
         for (List<String> row : joinResult) {
             result.append(String.join("\t", row)).append("\n");

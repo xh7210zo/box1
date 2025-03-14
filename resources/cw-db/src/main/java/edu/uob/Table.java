@@ -30,21 +30,25 @@ public class Table {
             return false;
         }
 
+        //clean the name of columns
         List<String> cleanedColumns = new ArrayList<>();
         Set<String> uniqueColumns = new HashSet<>();
 
         for (String col : columns) {
+            //replace all the invalid characters
             String cleanCol = col.replace("(", "")
                     .replace(")", "")
                     .replace(";", "")
                     .replace(",", "")
                     .trim();
 
+            //invalid name 'id'
             if (cleanCol.equalsIgnoreCase("id")) {
                 System.out.println("[ERROR] Column name 'id' is not allowed.");
                 return false;
             }
 
+            //column name cant be duplicated
             if (!uniqueColumns.add(cleanCol)) {
                 System.out.println("[ERROR] Duplicate column name found: " + cleanCol);
                 return false;
@@ -58,6 +62,7 @@ public class Table {
         }
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(tableFile, StandardCharsets.UTF_8))) {
+            //the first column must be 'id'
             writer.write("id");
             for (String col : cleanedColumns) {
                 writer.write("\t" + col);
@@ -79,6 +84,7 @@ public class Table {
         String tablePath = storageFolderPath + File.separator + currentDatabase.toLowerCase() + File.separator + cleanTableName.toLowerCase() + ".tab";
         File tableFile = new File(tablePath);
 
+        //if the table exists,delete it and return
         return tableFile.exists() && tableFile.delete();
     }
 }

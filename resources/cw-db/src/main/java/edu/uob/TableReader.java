@@ -17,6 +17,8 @@ public class TableReader {
         if (currentDatabase == null) {
             throw new IOException("No database selected.");
         }
+
+        //clean all the ';' and space at the end
         String cleanTableName = tableName.replace(";", "").trim();
         String tablePath = storageFolderPath + File.separator + currentDatabase.toLowerCase() + File.separator + cleanTableName.toLowerCase() + ".tab";
         File tableFile = new File(tablePath);
@@ -25,10 +27,14 @@ public class TableReader {
             throw new IOException("Table does not exist: " + tableName);
         }
 
+        //store the data of the table
         List<List<String>> tableData = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(tableFile))) {
             String line;
+
+            //read data
             while ((line = reader.readLine()) != null) {
+                //store data in the List
                 tableData.add(Arrays.asList(line.split("\t")));
             }
         }
