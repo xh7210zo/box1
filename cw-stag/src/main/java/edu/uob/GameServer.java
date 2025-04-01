@@ -23,8 +23,19 @@ public final class GameServer {
     private Map<String, GameAction> actions; // 存储所有的动作
 
     public static void main(String[] args) throws IOException {
-        File entitiesFile = Paths.get("config" + File.separator + "basic-entities.dot").toAbsolutePath().toFile();
-        File actionsFile = Paths.get("config" + File.separator + "basic-actions.xml").toAbsolutePath().toFile();
+        StringBuilder entitiesPath = new StringBuilder();
+        entitiesPath.append("config");
+        entitiesPath.append(File.separator);
+        entitiesPath.append("basic-entities.dot");
+
+        StringBuilder actionsPath = new StringBuilder();
+        actionsPath.append("config");
+        actionsPath.append(File.separator);
+        actionsPath.append("basic-actions.xml");
+
+        File entitiesFile = new File(entitiesPath.toString()).getAbsoluteFile();
+        File actionsFile = new File(actionsPath.toString()).getAbsoluteFile();
+
         GameServer server = new GameServer(entitiesFile, actionsFile);
         server.blockingListenOn(8888);
     }
@@ -47,13 +58,11 @@ public final class GameServer {
 
         // 获取起始房间
         Room startingRoom = entitiesLoader.getStartingRoom(); // 从EntitiesLoader中获取起始房间
-        System.out.println("[DEBUG] 获取的 Starting Room: " + (startingRoom != null ? startingRoom.getName() : "NULL"));
         if (startingRoom == null) {
             throw new IllegalStateException("[GameServer] Error: No valid starting room found! Please check your .dot file.");
         }
 
         this.currentPlayer = new Player("Player1", startingRoom);
-        System.out.println("[GameServer] 游戏初始化完成，玩家出生在 " + currentPlayer.getCurrentRoom().getName());
 
         ActionsLoader actionsLoader = new ActionsLoader();
         actionsLoader.loadActions(actionsFile);
@@ -68,13 +77,8 @@ public final class GameServer {
         // 找到匹配的动作
         GameAction action = actions.get(actionCommand.toLowerCase());
         if (action == null) {
-            System.out.println("[GameServer] 无法识别的动作: " + actionCommand); // 打印无法识别的动作
             return "无法识别的动作";
         }
-
-        // 打印正在执行的动作
-        System.out.println("[GameServer] 执行动作: " + actionCommand);
-        System.out.println("[GameServer] 动作叙述: " + action.getNarration());
 
         // 执行动作，返回动作的叙述
         return action.getNarration();
@@ -100,9 +104,6 @@ public final class GameServer {
         String[] word = input.split(" ");
         String action = word[0];
 
-        System.out.println("[GameServer] 收到命令: " + command);
-        System.out.println("[GameServer] 提取的动作命令: " + action);
-        System.out.println("[DEBUG] 处理命令前: 玩家当前房间 - " + currentPlayer.getCurrentRoom().getName());
 
         switch (action) {
             case "look":
@@ -254,12 +255,10 @@ public final class GameServer {
         Room currentRoom = currentPlayer.getCurrentRoom();
         Room targetRoom = currentRoom.getExit(roomName);
         if (targetRoom == null) {
-            System.out.println("[GameServer] " + currentPlayer.getName() + " 试图前往 " + roomName + " 但失败");
             return "You can't go there.";
         }
 
         currentPlayer.moveTo(targetRoom);
-        System.out.println("[GameServer] " + currentPlayer.getName() + " 移动到了 " + targetRoom.getName());
         return "You moved to: " + targetRoom.getName() + "\n" + targetRoom.describe();
     }
 
