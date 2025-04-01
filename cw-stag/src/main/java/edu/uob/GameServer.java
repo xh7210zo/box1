@@ -54,8 +54,6 @@ public final class GameServer {
         this.rooms = entitiesLoader.getRooms(); // 获取加载的房间列表
         this.storeroom = entitiesLoader.getStoreroom(); // 获取 storeroom
 
-        System.out.println("[DEBUG] 加载的房间：" + rooms.keySet());
-
         // 获取起始房间
         Room startingRoom = entitiesLoader.getStartingRoom(); // 从EntitiesLoader中获取起始房间
         if (startingRoom == null) {
@@ -107,18 +105,18 @@ public final class GameServer {
 
         switch (action) {
             case "look":
-                return handleLook();
+                return this.handleLook(); // 使用 this 调用方法
             case "inventory":
             case "inv":
-                return currentPlayer.listInventory();
+                return this.currentPlayer.listInventory(); // 调用 currentPlayer 的方法，当前的 this 可以省略
             case "get":
-                return handleGet(currentPlayer, word);
+                return this.handleGet(this.currentPlayer, word); // 使用 this 调用 handleGet 方法
             case "drop":
-                return handleDrop(word);
+                return this.handleDrop(word); // 使用 this 调用 handleDrop 方法
             case "goto":
-                return handleGoto(word);
+                return this.handleGoto(word); // 使用 this 调用 handleGoto 方法
             default:
-                return handleAction(action); // 调用 handleAction 方法处理其他命令
+                return this.handleAction(action); // 使用 this 调用 handleAction 方法
         }
     }
 
@@ -271,7 +269,6 @@ public final class GameServer {
     */
     public void blockingListenOn(int portNumber) throws IOException {
         try (ServerSocket s = new ServerSocket(portNumber)) {
-            System.out.println("Server listening on port " + portNumber);
             while (!Thread.interrupted()) {
                 try {
                     blockingHandleConnection(s);
@@ -296,7 +293,6 @@ public final class GameServer {
             System.out.println("Connection established");
             String incomingCommand = reader.readLine();
             if(incomingCommand != null) {
-                System.out.println("Received message from " + incomingCommand);
                 String result = handleCommand(incomingCommand);
                 writer.write(result);
                 writer.write("\n" + END_OF_TRANSMISSION + "\n");
