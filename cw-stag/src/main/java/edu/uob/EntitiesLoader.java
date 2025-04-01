@@ -44,10 +44,10 @@ public class EntitiesLoader {
             Graph mainGraph = graphs.get(0);
 
             for (Graph locationSubgraph : mainGraph.getSubgraphs()) {
-                processLocation(locationSubgraph);
+                this.processLocation(locationSubgraph);
             }
 
-            processPaths(mainGraph);
+            this.processPaths(mainGraph);
 
             if (startingRoom == null) {
                 for (Room room : rooms.values()) {
