@@ -41,6 +41,10 @@ public class Room extends GameEntity {
         return artefacts;
     }
 
+    public void removeArtefact(Artefact artefact) {
+        artefacts.remove(artefact);
+    }
+
     // 添加家具
     public void addFurniture(Furniture f) {
         furniture.add(f);

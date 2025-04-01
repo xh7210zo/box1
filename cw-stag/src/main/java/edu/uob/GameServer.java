@@ -96,7 +96,9 @@ public final class GameServer {
         if (words.length == 0 || words[words.length - 1].trim().isEmpty()) return "Invalid command.";
 
         // 获取动作部分，忽略冒号之前的部分
-        String action = words[words.length - 1].trim(); // 获取冒号后的部分
+        String input = words[words.length - 1].trim(); // 获取冒号后的部分
+        String[] word = input.split(" ");
+        String action = word[0];
 
         System.out.println("[GameServer] 收到命令: " + command);
         System.out.println("[GameServer] 提取的动作命令: " + action);
@@ -108,12 +110,12 @@ public final class GameServer {
             case "inventory":
             case "inv":
                 return currentPlayer.listInventory();
-  //          case "get":
-  //              return handleGet(words);
+            case "get":
+                return handleGet(currentPlayer, word);
             case "drop":
-                return handleDrop(words);
+                return handleDrop(word);
             case "goto":
-                return handleGoto(words);
+                return handleGoto(word);
             default:
                 return handleAction(action); // 调用 handleAction 方法处理其他命令
         }
@@ -185,27 +187,44 @@ public final class GameServer {
 
 
 
-    /* private String handleGet(String[] words) {
-        if (words.length < 2) return "Get what?";
-        String itemName = words[1];
-
-        Room room = currentPlayer.getCurrentRoom();
-        if (!room.hasArtefact(itemName)) {
-            return "No such item here.";
+    public String handleGet(Player currentPlayer, String[] word) {
+        if (word.length < 2) {
+            return "What do you want to get?";  // 玩家没有指定物品名时
         }
 
-        Artefact item = room.getArtefact(itemName);
-        currentPlayer.addItem(item);
-        room.removeArtefact(item);
-        System.out.println("[GameServer] " + currentPlayer.getName() + " 拾取了物品：" + item.getName());
-        return "You picked up: " + item.getName();
+        String itemName = word[1].toLowerCase();  // 获取物品名
+        Artefact itemToGet = null;
+
+        // 获取当前房间
+        Room currentRoom = currentPlayer.getCurrentRoom();
+
+        // 查找物品是否在当前房间内
+        for (Artefact artefact : currentRoom.getArtefacts()) {
+            if (artefact.getName().equalsIgnoreCase(itemName)) {
+                itemToGet = artefact;
+                break;
+            }
+        }
+
+        // 如果物品未找到
+        if (itemToGet == null) {
+            return "There is no " + itemName + " here!";  // 提示物品不在房间
+        }
+
+        // 将物品添加到玩家的背包
+        currentPlayer.addItem(itemToGet);
+
+        // 从房间移除该物品
+        currentRoom.removeArtefact(itemToGet);
+
+        return "You have picked up the " + itemToGet.getName() + ".";  // 成功拾取物品
     }
 
 
-    */
-    private String handleDrop(String[] words) {
-        if (words.length < 2) return "Drop what?";
-        String itemName = words[1];
+
+    private String handleDrop(String[] word) {
+        if (word.length < 2) return "Drop what?";
+        String itemName = word[1];
 
         if (!currentPlayer.hasItem(itemName)) {
             return "You don't have that item.";
@@ -228,9 +247,9 @@ public final class GameServer {
         return "You dropped: " + itemToDrop.getName();
     }
 
-    private String handleGoto(String[] words) {
-        if (words.length < 2) return "Go where?";
-        String roomName = words[1];
+    private String handleGoto(String[] word) {
+        if (word.length < 2) return "Go where?";
+        String roomName = word[1];
 
         Room currentRoom = currentPlayer.getCurrentRoom();
         Room targetRoom = currentRoom.getExit(roomName);

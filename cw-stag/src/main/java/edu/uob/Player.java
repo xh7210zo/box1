@@ -10,17 +10,17 @@ public class Player extends Character {
 
     public Player(String name, Room startingRoom) {
         super(name, "A brave adventurer");
-    //    if (startingRoom == null) {
-    //        throw new IllegalArgumentException("Starting room cannot be null!");
-    //    }
+        if (startingRoom == null) {
+            throw new IllegalArgumentException("Starting room cannot be null!");
+        }
         this.currentRoom = startingRoom;
         this.inventory = new HashSet<>();
     }
 
     public Room getCurrentRoom() {
-    //    if (currentRoom == null) {
-    //        throw new IllegalStateException("Player's current room is not set!");
-    //    }
+        if (currentRoom == null) {
+            throw new IllegalStateException("Player's current room is not set!");
+        }
         return currentRoom;
     }
 
