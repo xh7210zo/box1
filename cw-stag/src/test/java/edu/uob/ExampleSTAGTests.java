@@ -44,7 +44,7 @@ class ExampleSTAGTests {
       }
 
       System.out.println("Before sending command: " + player.getCurrentRoom().getName());
-      String response = sendCommandToServer("simon: look");
+      String response = sendCommandToServer("please simon: please LOOK");
       System.out.println("After sending command: " + player.getCurrentRoom().getName());
 
       response = response.toLowerCase();
@@ -75,8 +75,8 @@ class ExampleSTAGTests {
   void testGet()
   {
       String response;
-      sendCommandToServer("simon: get potion");
-      response = sendCommandToServer("simon: inv");
+      sendCommandToServer("simon: gEt potIon");
+      response = sendCommandToServer("simon: iNv");
       response = response.toLowerCase();
       assertTrue(response.contains("potion"), "Did not see the potion in the inventory after an attempt was made to get it");
       response = sendCommandToServer("simon: look");
@@ -88,7 +88,7 @@ class ExampleSTAGTests {
   @Test
   void testGoto()
   {
-      sendCommandToServer("simon: goto forest");
+      sendCommandToServer("simon: goto foRest");
       String response = sendCommandToServer("simon: look");
       response = response.toLowerCase();
       assertTrue(response.contains("key"), "Failed attempt to use 'goto' command to move to the forest - there is no key in the current location");

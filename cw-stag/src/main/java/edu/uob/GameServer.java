@@ -21,6 +21,8 @@ public final class GameServer {
     private Map<String, Room> rooms; // 存储所有房间
     private Room storeroom;
     private Map<String, GameAction> actions; // 存储所有的动作
+    Set<String> decorativeWords = new HashSet<>(Arrays.asList("please", "the", "using", "with", "to"));
+
 
     public static void main(String[] args) throws IOException {
         StringBuilder entitiesPath = new StringBuilder();
@@ -92,7 +94,8 @@ public final class GameServer {
     public String handleCommand(String command) {
         // TODO implement your server logic here
         // 先去除前后空白，再根据冒号分割命令
-        String[] words = command.toLowerCase().trim().split(":");
+        String normalizedCommand = normalizeCommand(command);
+        String[] words = normalizedCommand.toLowerCase().trim().split(":");
 
         // 如果命令没有动作部分，返回无效命令
         if (words.length == 0 || words[words.length - 1].trim().isEmpty()) return "Invalid command.";
@@ -118,6 +121,23 @@ public final class GameServer {
             default:
                 return this.handleAction(action); // 使用 this 调用 handleAction 方法
         }
+    }
+    public String normalizeCommand(String command) {
+        // 将命令转为小写并分割成单词
+        String[] words = command.toLowerCase().split(" ");
+
+        // 创建一个新的列表存储处理后的命令部分
+        List<String> filteredWords = new ArrayList<>();
+
+        // 遍历每个单词，去除修饰性词汇
+        for (String word : words) {
+            if (!decorativeWords.contains(word)) {
+                filteredWords.add(word);
+            }
+        }
+
+        // 将处理后的命令部分重新组合成一个字符串
+        return String.join(" ", filteredWords);
     }
 
     private String handleLook() {
