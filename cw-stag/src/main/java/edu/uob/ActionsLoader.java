@@ -8,7 +8,7 @@ import java.util.*;
 public class ActionsLoader {
 
     // 用于存储解析后的动作
-    private  Map<String, GameAction> actions;
+    private final Map<String, GameAction> actions;
 
     public ActionsLoader() {
         this.actions = new HashMap<>();

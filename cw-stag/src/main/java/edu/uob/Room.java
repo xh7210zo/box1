@@ -3,10 +3,10 @@ package edu.uob;
 import java.util.*;
 
 public class Room extends GameEntity {
-    private Map<String, Room> exits; // 存储房间出口
-    private  Set<Artefact> artefacts; // 存储房间内的物品
-    private  Set<Furniture> furniture; // 存储房间内的家具
-    private  Set<Character> characters; // 存储房间内的角色
+    private final Map<String, Room> exits; // 存储房间出口
+    private final Set<Artefact> artefacts; // 存储房间内的物品
+    private final Set<Furniture> furniture; // 存储房间内的家具
+    private final Set<Character> characters; // 存储房间内的角色
 
     public Room(String name, String description) {
         super(name, description);
@@ -212,50 +212,4 @@ public class Room extends GameEntity {
 
         return sb.toString();
     }
-    public void printRoomDetails() {
-        // 打印房间基本信息
-        System.out.println("Room: " + getName());
-        System.out.println("Description: " + getDescription());
-
-        // 打印物品
-        if (!artefacts.isEmpty()) {
-            System.out.println("Artefacts in the room:");
-            for (Artefact a : artefacts) {
-                System.out.println(" - " + a.getName());
-            }
-        } else {
-            System.out.println("No artefacts in this room.");
-        }
-
-        // 打印家具
-        if (!furniture.isEmpty()) {
-            System.out.println("Furniture in the room:");
-            for (Furniture f : furniture) {
-                System.out.println(" - " + f.getName());
-            }
-        } else {
-            System.out.println("No furniture in this room.");
-        }
-
-        // 打印角色
-        if (!characters.isEmpty()) {
-            System.out.println("Characters in the room:");
-            for (Character c : characters) {
-                System.out.println(" - " + c.getName());
-            }
-        } else {
-            System.out.println("No characters in this room.");
-        }
-
-        // 打印出口
-        if (!exits.isEmpty()) {
-            System.out.println("Exits from this room:");
-            for (String exit : exits.keySet()) {
-                System.out.println(" - " + exit);
-            }
-        } else {
-            System.out.println("No exits from this room.");
-        }
-    }
-
 }

@@ -2,7 +2,7 @@ package edu.uob;
 import java.util.*;
 
 public class CommandParser {
-    private Set<String> decorativeWords;
+    private final Set<String> decorativeWords;
 
     public CommandParser(Set<String> decorativeWords) {
         this.decorativeWords = decorativeWords;

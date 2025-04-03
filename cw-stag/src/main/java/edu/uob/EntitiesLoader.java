@@ -13,9 +13,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class EntitiesLoader {
-    private Map<String, Room> rooms;
+    private final Map<String, Room> rooms;
     private Room startingRoom;  // 修改为 Room 类型
-    private Set<String> gameEntities;  // 用于存储所有有效的实体名称
+    private final Set<String> gameEntities;  // 用于存储所有有效的实体名称
 
     public EntitiesLoader() {
         this.rooms = new LinkedHashMap<>();

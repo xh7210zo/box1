@@ -5,10 +5,10 @@ import java.util.HashSet;
 
 public class GameAction {
     // 触发短语
-    private Set<String> subjects;  // 动作的主体
-    private Set<String> consumed;  // 消耗品
-    private  Set<String> produced;  // 产生物品
-    private  String narration;      // 叙述
+    private final Set<String> subjects;  // 动作的主体
+    private final Set<String> consumed;  // 消耗品
+    private final Set<String> produced;  // 产生物品
+    private final String narration;      // 叙述
 
     // 构造函数
     public GameAction(Set<String> subjects, Set<String> consumed, Set<String> produced, String narration) {

@@ -6,9 +6,9 @@ import java.util.Set;
 
 public class Player extends Character {
     private Room currentRoom;
-    private  Set<Artefact> inventory; // 用 Set 存储物品，防止重复
+    private final Set<Artefact> inventory; // 用 Set 存储物品，防止重复
     private int health; // 健康属性
-    private EntitiesLoader entitiesLoader; // 添加字段来存储 EntitiesLoader 实例
+    private final EntitiesLoader entitiesLoader; // 添加字段来存储 EntitiesLoader 实例
 
     public Player(String name, Room startingRoom, EntitiesLoader entitiesLoader) {
         super(name, "A brave adventurer");
