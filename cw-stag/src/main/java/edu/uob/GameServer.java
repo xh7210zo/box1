@@ -76,31 +76,29 @@ public final class GameServer {
         // 1. 预处理命令（去除修饰词，转换小写）
         String normalizedCommand = this.normalizeCommand(command);
 
-        // 2. 拆分命令，获取有效的关键词（用 List 替代数组）
+        // 2. 拆分命令，获取有效的关键词（避免使用 ArrayList）
         String commandPart = normalizedCommand.substring(normalizedCommand.lastIndexOf(":") + 1).trim();
-        List<String> wordsList = new ArrayList<>();
+        Set<String> commandWords = new LinkedHashSet<>();
+
         try (Scanner scanner = new Scanner(commandPart)) {
             while (scanner.hasNext()) {
-                wordsList.add(scanner.next());
+                commandWords.add(scanner.next());
             }
         }
 
-        if (wordsList.isEmpty()) {
+        if (commandWords.isEmpty()) {
             return "Invalid command.";
         }
 
         // 3. 解析命令
-        Set<String> commandWords = new HashSet<>(wordsList);
-
-        // 先检查是否是内置命令
         String actionVerb = this.findActionVerb(commandWords);
 
         // 4. 提取除了 actionVerb 以外的其它词
         commandWords.remove(actionVerb); // 从集合中移除 actionVerb
-        List<String> subjects = new ArrayList<>(this.findSubjects(commandWords));
 
+        Iterator<String> subjectIterator = this.findSubjects(commandWords).iterator();
 
-        if (actionVerb == null || (subjects.isEmpty() && !isBuiltinCommand(actionVerb))) {
+        if (actionVerb == null || (!subjectIterator.hasNext() && !isBuiltinCommand(actionVerb))) {
             return "Invalid command: Missing necessary action or subject.";
         }
 
@@ -109,10 +107,10 @@ public final class GameServer {
             return this.handleBuiltinCommand(actionVerb, commandWords);
         }
 
-
         // 6. 处理游戏动作
-        return this.handleGameAction(actionVerb, subjects);
+        return this.handleGameAction(actionVerb, subjectIterator);
     }
+
 
 
     public boolean isBuiltinCommand(String action) {
@@ -220,7 +218,7 @@ public final class GameServer {
 
 
 
-    private String handleGameAction(String actionVerb, List<String> subjects) {
+    private String handleGameAction(String actionVerb, Iterator<String> subjectIterator) {
         if (!actions.containsKey(actionVerb)) {
             return "Invalid action.";
         }
@@ -228,12 +226,19 @@ public final class GameServer {
         // 获取单个 GameAction
         GameAction action = actions.get(actionVerb);
 
-        if (new HashSet<>(subjects).containsAll(action.getSubjects())) {
+        // 将 Iterator 转换为 Set 以进行 containsAll 检查
+        Set<String> subjects = new HashSet<>();
+        while (subjectIterator.hasNext()) {
+            subjects.add(subjectIterator.next());
+        }
+
+        if (subjects.containsAll(action.getSubjects())) {
             return this.executeGameAction(action);
         }
 
         return "You can't do that right now.";
     }
+
 
     private String executeGameAction(GameAction action) {
         Room currentRoom = currentPlayer.getCurrentRoom();
