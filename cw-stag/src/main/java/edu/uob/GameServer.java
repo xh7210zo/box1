@@ -105,8 +105,9 @@ public final class GameServer {
 
         // 5. 处理内置命令
         if (isBuiltinCommand(actionVerb)) {
-            return this.handleBuiltinCommand(actionVerb, new ArrayList<>(commandWords));
+            return this.handleBuiltinCommand(actionVerb, commandWords);
         }
+
 
         // 6. 处理游戏动作
         return this.handleGameAction(actionVerb, subjects);
@@ -161,10 +162,10 @@ public final class GameServer {
         return null;  // 没找到匹配的动作，返回 null
     }
 
-    public String handleBuiltinCommand(String action, List<String> subjects) {
-        // 打印传入的命令和参数
-
+    public String handleBuiltinCommand(String action, Set<String> subjects) {
         if (subjects.size() > 1) return "Too many entities specified.";
+
+        Iterator<String> subjectIterator = subjects.iterator();
 
         switch (action) {
             case "look":
@@ -175,35 +176,28 @@ public final class GameServer {
                 return this.currentPlayer.listInventory();
 
             case "get":
-                if (subjects.isEmpty()) {
-                    return "Specify what to get.";
-                } else {
-                    // 打印获取的物品
-                    return this.handleGet(this.currentPlayer, new String[]{"get",subjects.get(0)});
-                }
+                return subjectIterator.hasNext() ?
+                        this.handleGet(this.currentPlayer, subjectIterator) :
+                        "Specify what to get.";
 
             case "drop":
-                if (subjects.isEmpty()) {
-                    return "Specify what to drop.";
-                } else {
-                    // 打印要丢弃的物品
-                    return this.handleDrop(new String[]{"drop",subjects.get(0)});
-                }
+                return subjectIterator.hasNext() ?
+                        this.handleDrop(subjectIterator) :
+                        "Specify what to drop.";
 
             case "goto":
-                if (subjects.isEmpty()) {
-                    return "Specify where to go.";
-                } else {
-                    // 打印目标房间/位置
-                    return this.handleGoto(new String[]{"goto",subjects.get(0)});
-                }
-            case "health":  // ➕ 新增健康值检查命令
+                return subjectIterator.hasNext() ?
+                        this.handleGoto(subjectIterator) :
+                        "Specify where to go.";
+
+            case "health":
                 return this.handleHealth();
 
             default:
                 return "Unknown built-in command.";
         }
     }
+
 
 
     private String handleGameAction(String actionVerb, List<String> subjects) {
@@ -385,17 +379,15 @@ public final class GameServer {
 
 
 
-    public String handleGet(Player currentPlayer, String[] word) {
-        if (word.length < 2) {
-            return "What do you want to get?";  // 玩家没有指定物品名时
+    public String handleGet(Player currentPlayer, Iterator<String> wordIterator) {
+        if (!wordIterator.hasNext()) {
+            return "What do you want to get?";
         }
-        String itemName = word[1].toLowerCase();  // 获取物品名
-        Artefact itemToGet = null;
 
-        // 获取当前房间
+        String itemName = wordIterator.next().toLowerCase();
+        Artefact itemToGet = null;
         Room currentRoom = currentPlayer.getCurrentRoom();
 
-        // 查找物品是否在当前房间内
         for (Artefact artefact : currentRoom.getArtefacts()) {
             if (artefact.getName().equalsIgnoreCase(itemName)) {
                 itemToGet = artefact;
@@ -403,34 +395,26 @@ public final class GameServer {
             }
         }
 
-        // 如果物品未找到
         if (itemToGet == null) {
-            StringBuilder notFoundMessage = new StringBuilder();
-            notFoundMessage.append("There is no ").append(itemName).append(" here!");  // 提示物品不在房间
-            return notFoundMessage.toString();
+            return "There is no " + itemName + " here!";
         }
 
-        // 将物品添加到玩家的背包
         currentPlayer.addItem(itemToGet);
-
-        // 从房间移除该物品
         currentRoom.removeArtefact(itemToGet);
 
-        // 返回成功拾取物品的消息
-        StringBuilder successMessage = new StringBuilder();
-        successMessage.append("You have picked up the ").append(itemToGet.getName()).append(".");  // 成功拾取物品
-        return successMessage.toString();
+        return "You have picked up the " + itemToGet.getName() + ".";
     }
 
 
-    private String handleDrop(String[] word) {
-        if (word.length < 2) {
+
+    private String handleDrop(Iterator<String> wordIterator) {
+        if (!wordIterator.hasNext()) {
             return "Drop what?";
         }
 
-        String itemName = word[1];
+        String itemName = wordIterator.next();
 
-        if (currentPlayer.hasItem(itemName)) {
+        if (!currentPlayer.hasItem(itemName)) {
             return "You don't have that item.";
         }
 
@@ -451,18 +435,19 @@ public final class GameServer {
         currentPlayer.removeItem(itemToDrop);
         currentPlayer.getCurrentRoom().addArtefact(itemToDrop);
 
-        // 使用 StringBuilder 构建返回字符串
         StringBuilder sb = new StringBuilder();
         sb.append("You dropped: ").append(itemToDrop.getName());
-
         return sb.toString();
     }
 
 
-    private String handleGoto(String[] word) {
-        if (word.length < 2) return "Go where?";  // 玩家没有指定目标房间
 
-        String roomName = word[1];
+    private String handleGoto(Iterator<String> wordIterator) {
+        if (!wordIterator.hasNext()) {
+            return "Go where?";  // 玩家没有指定目标房间
+        }
+
+        String roomName = wordIterator.next();  // 通过迭代器获取目标房间名称
 
         Room currentRoom = currentPlayer.getCurrentRoom();
         Room targetRoom = currentRoom.getExit(roomName);
@@ -476,8 +461,9 @@ public final class GameServer {
         StringBuilder sb = new StringBuilder();
         sb.append("You moved to: ").append(targetRoom.getName()).append("\n");
         sb.append(targetRoom.describe());  // 添加目标房间的描述
-        return sb.toString();  // 返回构建的字符串
+        return sb.toString();
     }
+
 
 
     /**
