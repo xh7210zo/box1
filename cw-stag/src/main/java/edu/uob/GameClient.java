@@ -26,7 +26,6 @@ public final class GameClient {
 
     private void handleNextCommand(String username) throws IOException {
         // Using StringBuilder for string concatenation
-        System.out.print(username + ":> ");
         BufferedReader commandLine = new BufferedReader(new InputStreamReader(System.in));
         String command = commandLine.readLine();
 
