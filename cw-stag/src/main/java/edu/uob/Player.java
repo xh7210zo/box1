@@ -6,10 +6,11 @@ import java.util.Set;
 
 public class Player extends Character {
     private Room currentRoom;
-    private final Set<Artefact> inventory; // 用 Set 存储物品，防止重复
+    private  Set<Artefact> inventory; // 用 Set 存储物品，防止重复
     private int health; // 健康属性
+    private EntitiesLoader entitiesLoader; // 添加字段来存储 EntitiesLoader 实例
 
-    public Player(String name, Room startingRoom) {
+    public Player(String name, Room startingRoom, EntitiesLoader entitiesLoader) {
         super(name, "A brave adventurer");
         if (startingRoom == null) {
             throw new IllegalArgumentException("Starting room cannot be null!");
@@ -17,7 +18,9 @@ public class Player extends Character {
         this.currentRoom = startingRoom;
         this.inventory = new HashSet<>();
         this.health = 3; // 初始化健康为 3
+        this.entitiesLoader = entitiesLoader;  // 保存 entitiesLoader 实例
     }
+
 
     public Room getCurrentRoom() {
         if (currentRoom == null) {
@@ -86,9 +89,9 @@ public class Player extends Character {
 
     // 返回起始房间
     private Room getStartingRoom() {
-        // 假设我们有一个固定的起始房间
-        return EntitiesLoader.getStartingRoom();
+        return entitiesLoader.getStartingRoom();
     }
+
     // ✅ 实现 listInventory() 方法
     public String listInventory() {
         if (inventory.isEmpty()) {

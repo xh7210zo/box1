@@ -3,10 +3,10 @@ package edu.uob;
 import java.util.*;
 
 public class Room extends GameEntity {
-    private final Map<String, Room> exits; // 存储房间出口
-    private final Set<Artefact> artefacts; // 存储房间内的物品
-    private final Set<Furniture> furniture; // 存储房间内的家具
-    private final Set<Character> characters; // 存储房间内的角色
+    private Map<String, Room> exits; // 存储房间出口
+    private  Set<Artefact> artefacts; // 存储房间内的物品
+    private  Set<Furniture> furniture; // 存储房间内的家具
+    private  Set<Character> characters; // 存储房间内的角色
 
     public Room(String name, String description) {
         super(name, description);
@@ -150,9 +150,9 @@ public class Room extends GameEntity {
         sb.append("You are in: ").append(getName()).append("\n");
         sb.append(getDescription()).append("\n");
 
-        // 处理 artefacts (物品)
+        // 打印 artefacts (物品)
         if (!artefacts.isEmpty()) {
-            sb.append("You see: ");
+            sb.append("Artefacts: ");
             for (Artefact a : artefacts) {
                 sb.append(a.getName()).append(", ");
             }
@@ -161,11 +161,13 @@ public class Room extends GameEntity {
                 sb.setLength(sb.length() - 2);
             }
             sb.append("\n");
+        } else {
+            sb.append("No artefacts in this room.\n");
         }
 
-        // 处理 furniture (家具)
+        // 打印 furniture (家具)
         if (!furniture.isEmpty()) {
-            sb.append("There is furniture: ");
+            sb.append("Furniture: ");
             for (Furniture f : furniture) {
                 sb.append(f.getName()).append(", ");
             }
@@ -174,11 +176,13 @@ public class Room extends GameEntity {
                 sb.setLength(sb.length() - 2);
             }
             sb.append("\n");
+        } else {
+            sb.append("No furniture in this room.\n");
         }
 
-        // 处理 characters (角色)
+        // 打印 characters (角色)
         if (!characters.isEmpty()) {
-            sb.append("Characters present: ");
+            sb.append("Characters: ");
             for (Character c : characters) {
                 sb.append(c.getName()).append(", ");
             }
@@ -187,11 +191,13 @@ public class Room extends GameEntity {
                 sb.setLength(sb.length() - 2);
             }
             sb.append("\n");
+        } else {
+            sb.append("No characters in this room.\n");
         }
 
-        // 处理 exits (出口)
+        // 打印 exits (出口)
         if (!exits.isEmpty()) {
-            sb.append("You can go to: ");
+            sb.append("Exits: ");
             for (String exit : exits.keySet()) {
                 sb.append(exit).append(", ");
             }
@@ -200,8 +206,56 @@ public class Room extends GameEntity {
                 sb.setLength(sb.length() - 2);
             }
             sb.append("\n");
+        } else {
+            sb.append("No exits from this room.\n");
         }
 
         return sb.toString();
     }
+    public void printRoomDetails() {
+        // 打印房间基本信息
+        System.out.println("Room: " + getName());
+        System.out.println("Description: " + getDescription());
+
+        // 打印物品
+        if (!artefacts.isEmpty()) {
+            System.out.println("Artefacts in the room:");
+            for (Artefact a : artefacts) {
+                System.out.println(" - " + a.getName());
+            }
+        } else {
+            System.out.println("No artefacts in this room.");
+        }
+
+        // 打印家具
+        if (!furniture.isEmpty()) {
+            System.out.println("Furniture in the room:");
+            for (Furniture f : furniture) {
+                System.out.println(" - " + f.getName());
+            }
+        } else {
+            System.out.println("No furniture in this room.");
+        }
+
+        // 打印角色
+        if (!characters.isEmpty()) {
+            System.out.println("Characters in the room:");
+            for (Character c : characters) {
+                System.out.println(" - " + c.getName());
+            }
+        } else {
+            System.out.println("No characters in this room.");
+        }
+
+        // 打印出口
+        if (!exits.isEmpty()) {
+            System.out.println("Exits from this room:");
+            for (String exit : exits.keySet()) {
+                System.out.println(" - " + exit);
+            }
+        } else {
+            System.out.println("No exits from this room.");
+        }
+    }
+
 }

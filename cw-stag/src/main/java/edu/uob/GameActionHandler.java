@@ -2,9 +2,9 @@ package edu.uob;
 import java.util.*;
 
 public class GameActionHandler {
-    private final Map<String, GameAction> actions;
-    private final Player currentPlayer;
-    private final EntitiesLoader entitiesLoader;
+    private  Map<String, GameAction> actions;
+    private  Player currentPlayer;
+    private  EntitiesLoader entitiesLoader;
 
     public GameActionHandler(Map<String, GameAction> actions, Player currentPlayer, EntitiesLoader entitiesLoader) {
         this.actions = actions;
@@ -58,13 +58,17 @@ public class GameActionHandler {
 
         // **检查要生成的实体 (Produced) 是否有效**
         for (String entity : action.getProduced()) {
+
             if (!entity.equalsIgnoreCase("health") && !currentRoom.hasEntity(entity) &&
                     entitiesLoader.getEntityByName(entity) == null && !entitiesLoader.getRooms().containsKey(entity)) {
+
+                // 返回无法创建该实体的信息
                 StringBuilder sb = new StringBuilder();
                 sb.append("You cannot create ").append(entity).append(" here.");
                 return sb.toString();
             }
         }
+
 
         // **处理健康变化**
         if (action.getConsumed().contains("health")) {

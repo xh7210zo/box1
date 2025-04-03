@@ -14,9 +14,9 @@ import java.net.Socket;
 public final class GameServer {
 
     private static final char END_OF_TRANSMISSION = 4;
-    private final EntitiesLoader entitiesLoader;  // 添加成员变量
-    private final Map<String, GameAction> actions;  // 添加 actions 变量
-    private final Player currentPlayer;
+    private  EntitiesLoader entitiesLoader;  // 添加成员变量
+    private  Map<String, GameAction> actions;  // 添加 actions 变量
+    private  Player currentPlayer;
     Set<String> decorativeWords = new HashSet<>(Arrays.asList("please", "the", "using", "with", "to"));
 
     public static void main(String[] args) throws IOException {
@@ -50,12 +50,13 @@ public final class GameServer {
         entitiesLoader.loadEntities(entitiesFile);
 
         // 获取起始房间
-        Room startingRoom = EntitiesLoader.getStartingRoom(); // 从EntitiesLoader中获取起始房间
+        Room startingRoom = entitiesLoader.getStartingRoom(); // 从EntitiesLoader中获取起始房间
         if (startingRoom == null) {
             throw new IllegalStateException("[GameServer] Error: No valid starting room found! Please check your .dot file.");
         }
 
-        this.currentPlayer = new Player("Player1", startingRoom);
+        this.currentPlayer = new Player("Player1", startingRoom, entitiesLoader);
+
 
         // 添加 actionsLoader
         ActionsLoader actionsLoader = new ActionsLoader();
@@ -105,6 +106,10 @@ public final class GameServer {
         // 直接判断是否是内置命令
         return action.equals("look") || action.equals("inventory") || action.equals("inv") || action.equals("get")
                 || action.equals("drop") || action.equals("goto")|| action.equals("health");
+    }
+
+    public Player getCurrentPlayer() {
+        return this.currentPlayer;  // 返回当前玩家对象
     }
 
     private Set<String> findSubjects(Set<String> commandWords) {

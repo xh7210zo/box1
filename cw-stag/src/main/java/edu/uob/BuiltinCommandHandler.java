@@ -3,7 +3,7 @@ package edu.uob;
 import java.util.*;
 
 public class BuiltinCommandHandler {
-    private final Player currentPlayer;
+    private  Player currentPlayer;
 
     public BuiltinCommandHandler(Player currentPlayer) {
         this.currentPlayer = currentPlayer;
