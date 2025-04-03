@@ -97,7 +97,8 @@ public final class GameServer {
 
         // 4. 提取除了 actionVerb 以外的其它词
         commandWords.remove(actionVerb); // 从集合中移除 actionVerb
-        List<String> subjects = this.findSubjects(commandWords);
+        List<String> subjects = new ArrayList<>(this.findSubjects(commandWords));
+
 
         if (actionVerb == null || (subjects.isEmpty() && !isBuiltinCommand(actionVerb))) {
             return "Invalid command: Missing necessary action or subject.";
@@ -125,15 +126,33 @@ public final class GameServer {
         // 将命令转为小写并分割成单词
         command = command.toLowerCase();
 
-        // 去除修饰词
-        List<String> words = new ArrayList<>(Arrays.asList(command.split("\\s+")));
-        words.removeAll(decorativeWords);
+        // 用 LinkedList 代替 ArrayList
+        Deque<String> wordsDeque = new LinkedList<>();
+        try (Scanner scanner = new Scanner(command)) {
+            while (scanner.hasNext()) {
+                wordsDeque.add(scanner.next());
+            }
+        }
 
-        return String.join(" ", words);
+        // 移除修饰词
+        wordsDeque.removeAll(decorativeWords);
+
+        // 使用 StringBuilder 进行拼接，避免使用 `String.join()`
+        StringBuilder sb = new StringBuilder();
+        Iterator<String> iterator = wordsDeque.iterator();
+        while (iterator.hasNext()) {
+            sb.append(iterator.next());
+            if (iterator.hasNext()) {
+                sb.append(" ");
+            }
+        }
+
+        return sb.toString();
     }
 
-    private List<String> findSubjects(Set<String> commandWords) {
-        List<String> subjects = new ArrayList<>();
+
+    private Set<String> findSubjects(Set<String> commandWords) {
+        Set<String> subjects = new HashSet<>();
 
         for (String word : commandWords) {
             if (entitiesLoader.getGameEntities().contains(word)) {
@@ -142,6 +161,7 @@ public final class GameServer {
         }
         return subjects;
     }
+
 
 
     private String findActionVerb(Set<String> commandWords) {
@@ -396,14 +416,19 @@ public final class GameServer {
         }
 
         if (itemToGet == null) {
-            return "There is no " + itemName + " here!";
+            StringBuilder sb = new StringBuilder();
+            sb.append("There is no ").append(itemName).append(" here!");
+            return sb.toString();
         }
 
         currentPlayer.addItem(itemToGet);
         currentRoom.removeArtefact(itemToGet);
 
-        return "You have picked up the " + itemToGet.getName() + ".";
+        StringBuilder sb = new StringBuilder();
+        sb.append("You have picked up the ").append(itemToGet.getName()).append(".");
+        return sb.toString();
     }
+
 
 
 
