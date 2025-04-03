@@ -64,10 +64,7 @@ public final class GameServer {
         actionsLoader.loadActions(actionsFile);
         this.actions = actionsLoader.getActions(); // 获取加载的动作列表
 
-
     }
-
-
 
     /**
     * Do not change the following method signature or we won't be able to mark your submission
@@ -79,37 +76,42 @@ public final class GameServer {
         // 1. 预处理命令（去除修饰词，转换小写）
         String normalizedCommand = this.normalizeCommand(command);
 
-        // 2. 拆分命令，获取有效的关键词
-        String[] words = normalizedCommand.substring(normalizedCommand.lastIndexOf(":") + 1).trim().split("\\s+");
-        if (words.length == 0) {
+        // 2. 拆分命令，获取有效的关键词（用 List 替代数组）
+        String commandPart = normalizedCommand.substring(normalizedCommand.lastIndexOf(":") + 1).trim();
+        List<String> wordsList = new ArrayList<>();
+        try (Scanner scanner = new Scanner(commandPart)) {
+            while (scanner.hasNext()) {
+                wordsList.add(scanner.next());
+            }
+        }
+
+        if (wordsList.isEmpty()) {
             return "Invalid command.";
         }
 
         // 3. 解析命令
-        Set<String> commandWords = new HashSet<>(Arrays.asList(words)); // 转换为 Set 便于
+        Set<String> commandWords = new HashSet<>(wordsList);
 
         // 先检查是否是内置命令
-        String actionVerb;
-        actionVerb = this.findActionVerb(commandWords);
+        String actionVerb = this.findActionVerb(commandWords);
 
         // 4. 提取除了 actionVerb 以外的其它词
-        List<String> things = new ArrayList<>(commandWords);
-        things.remove(actionVerb); // 从 things 中移除动作词 actionVerb
-
+        commandWords.remove(actionVerb); // 从集合中移除 actionVerb
         List<String> subjects = this.findSubjects(commandWords);
 
         if (actionVerb == null || (subjects.isEmpty() && !isBuiltinCommand(actionVerb))) {
             return "Invalid command: Missing necessary action or subject.";
         }
 
-        // 4. 处理内置命令
+        // 5. 处理内置命令
         if (isBuiltinCommand(actionVerb)) {
-            return this.handleBuiltinCommand(actionVerb, things);
+            return this.handleBuiltinCommand(actionVerb, new ArrayList<>(commandWords));
         }
 
-        // 5. 处理游戏动作
+        // 6. 处理游戏动作
         return this.handleGameAction(actionVerb, subjects);
     }
+
 
     public boolean isBuiltinCommand(String action) {
         // 直接判断是否是内置命令
@@ -421,10 +423,11 @@ public final class GameServer {
     }
 
 
-
-
     private String handleDrop(String[] word) {
-        if (word.length < 2) return "Drop what?";
+        if (word.length < 2) {
+            return "Drop what?";
+        }
+
         String itemName = word[1];
 
         if (currentPlayer.hasItem(itemName)) {
@@ -441,12 +444,20 @@ public final class GameServer {
             }
         }
 
-        if (itemToDrop == null) return "You don't have that item.";
+        if (itemToDrop == null) {
+            return "You don't have that item.";
+        }
 
         currentPlayer.removeItem(itemToDrop);
         currentPlayer.getCurrentRoom().addArtefact(itemToDrop);
-        return "You dropped: " + itemToDrop.getName();
+
+        // 使用 StringBuilder 构建返回字符串
+        StringBuilder sb = new StringBuilder();
+        sb.append("You dropped: ").append(itemToDrop.getName());
+
+        return sb.toString();
     }
+
 
     private String handleGoto(String[] word) {
         if (word.length < 2) return "Go where?";  // 玩家没有指定目标房间
