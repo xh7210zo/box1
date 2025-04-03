@@ -34,7 +34,7 @@ public final class GameClient {
             if (incomingMessage == null) {
                 throw new IOException("Server disconnected (end-of-stream)");
             }
-            while (incomingMessage != null && !incomingMessage.contains("" + END_OF_TRANSMISSION + "")) {
+            while (incomingMessage != null && !incomingMessage.contains("" + END_OF_TRANSMISSION)) {
                 System.out.println(incomingMessage);
                 incomingMessage = socketReader.readLine();
             }

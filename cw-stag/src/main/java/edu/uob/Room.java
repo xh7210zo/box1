@@ -3,10 +3,10 @@ package edu.uob;
 import java.util.*;
 
 public class Room extends GameEntity {
-    private Map<String, Room> exits; // 存储房间出口
-    private Set<Artefact> artefacts; // 存储房间内的物品
-    private Set<Furniture> furniture; // 存储房间内的家具
-    private Set<Character> characters; // 存储房间内的角色
+    private final Map<String, Room> exits; // 存储房间出口
+    private final Set<Artefact> artefacts; // 存储房间内的物品
+    private final Set<Furniture> furniture; // 存储房间内的家具
+    private final Set<Character> characters; // 存储房间内的角色
 
     public Room(String name, String description) {
         super(name, description);
@@ -112,12 +112,12 @@ public class Room extends GameEntity {
 
         return false;  // 如果没有找到实体，返回 false
     }
-    public boolean removeEntityByName(String entityName) {
+    public void removeEntityByName(String entityName) {
         // 遍历物品集合
         for (Artefact artefact : new HashSet<>(artefacts)) {
             if (artefact.getName().equalsIgnoreCase(entityName)) {
                 artefacts.remove(artefact);
-                return true; // 找到并移除物品
+                return; // 找到并移除物品
             }
         }
 
@@ -125,7 +125,7 @@ public class Room extends GameEntity {
         for (Furniture furniture : new HashSet<>(this.furniture)) {
             if (furniture.getName().equalsIgnoreCase(entityName)) {
                 this.furniture.remove(furniture);
-                return true; // 找到并移除家具
+                return; // 找到并移除家具
             }
         }
 
@@ -133,11 +133,10 @@ public class Room extends GameEntity {
         for (Character character : new HashSet<>(this.characters)) {
             if (character.getName().equalsIgnoreCase(entityName)) {
                 this.characters.remove(character);
-                return true; // 找到并移除角色
+                return; // 找到并移除角色
             }
         }
 
-        return false; // 如果没有找到匹配的实体
     }
     public void addEntity(GameEntity entity) {
         if (entity instanceof Artefact) {

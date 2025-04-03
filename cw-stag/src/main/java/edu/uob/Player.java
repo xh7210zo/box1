@@ -6,7 +6,7 @@ import java.util.Set;
 
 public class Player extends Character {
     private Room currentRoom;
-    private Set<Artefact> inventory; // 用 Set 存储物品，防止重复
+    private final Set<Artefact> inventory; // 用 Set 存储物品，防止重复
     private int health; // 健康属性
 
     public Player(String name, Room startingRoom) {
@@ -48,7 +48,7 @@ public class Player extends Character {
     }
 
     public boolean hasItem(String name) {
-        return inventory.stream().anyMatch(i -> i.getName().equalsIgnoreCase(name));
+        return inventory.stream().noneMatch(i -> i.getName().equalsIgnoreCase(name));
     }
     // 获取当前健康值
     public int getHealth() {
@@ -70,8 +70,6 @@ public class Player extends Character {
 
     // 处理死亡
     private void handlePlayerDeath() {
-        // 玩家死亡处理：丢失所有物品并返回起始房间
-        System.out.println("你死亡并失去了所有物品，你必须返回游戏的起始地点");
         for (Artefact item : inventory) {
             currentRoom.addArtefact(item); // 将物品放回当前房间
         }
@@ -92,9 +90,8 @@ public class Player extends Character {
         }
 
         StringBuilder sb = new StringBuilder("You are carrying: ");
-        Iterator<Artefact> it = inventory.iterator();
-        while (it.hasNext()) {
-            sb.append(it.next().getName()).append(", ");
+        for (Artefact artefact : inventory) {
+            sb.append(artefact.getName()).append(", ");
         }
         sb.setLength(sb.length() - 2); // 移除最后的逗号和空格
         return sb.toString();

@@ -15,10 +15,9 @@ import java.net.Socket;
 public final class GameServer {
 
     private static final char END_OF_TRANSMISSION = 4;
-    private EntitiesLoader entitiesLoader;  // 添加成员变量
-    private ActionsLoader actionsLoader;   // 添加 actionsLoader
-    private Map<String, GameAction> actions;  // 添加 actions 变量
-    private Player currentPlayer;
+    private final EntitiesLoader entitiesLoader;  // 添加成员变量
+    private final Map<String, GameAction> actions;  // 添加 actions 变量
+    private final Player currentPlayer;
     Set<String> decorativeWords = new HashSet<>(Arrays.asList("please", "the", "using", "with", "to"));
 
 
@@ -53,14 +52,15 @@ public final class GameServer {
         entitiesLoader.loadEntities(entitiesFile);
 
         // 获取起始房间
-        Room startingRoom = entitiesLoader.getStartingRoom(); // 从EntitiesLoader中获取起始房间
+        Room startingRoom = EntitiesLoader.getStartingRoom(); // 从EntitiesLoader中获取起始房间
         if (startingRoom == null) {
             throw new IllegalStateException("[GameServer] Error: No valid starting room found! Please check your .dot file.");
         }
 
         this.currentPlayer = new Player("Player1", startingRoom);
 
-        this.actionsLoader = new ActionsLoader();
+        // 添加 actionsLoader
+        ActionsLoader actionsLoader = new ActionsLoader();
         actionsLoader.loadActions(actionsFile);
         this.actions = actionsLoader.getActions(); // 获取加载的动作列表
 
@@ -77,48 +77,37 @@ public final class GameServer {
     */
     public String handleCommand(String command) {
         // 1. 预处理命令（去除修饰词，转换小写）
-        System.out.println("Received command: " + command);
         String normalizedCommand = normalizeCommand(command);
-        System.out.println("Normalized Command : " + normalizedCommand);
 
         // 2. 拆分命令，获取有效的关键词
         String[] words = normalizedCommand.substring(normalizedCommand.lastIndexOf(":") + 1).trim().split("\\s+");
         if (words.length == 0) {
-            System.out.println("Invalid command: No action or subjects found.");
             return "Invalid command.";
         }
 
         // 3. 解析命令
-        Set<String> commandWords = new HashSet<>(Arrays.asList(words)); // 转换为 Set 便于查找
-        System.out.println("Command words split into set: " + commandWords);
+        Set<String> commandWords = new HashSet<>(Arrays.asList(words)); // 转换为 Set 便于
 
         // 先检查是否是内置命令
         String actionVerb;
         actionVerb = findActionVerb(commandWords);
 
-        System.out.println("Action verb found: " + actionVerb);
-
         // 4. 提取除了 actionVerb 以外的其它词
         List<String> things = new ArrayList<>(commandWords);
         things.remove(actionVerb); // 从 things 中移除动作词 actionVerb
-        System.out.println("Things found (other than action verb): " + things);
 
         List<String> subjects = findSubjects(commandWords);
-        System.out.println("Subjects found: " + subjects);
 
         if (actionVerb == null || (subjects.isEmpty() && !isBuiltinCommand(actionVerb))) {
-            System.out.println("Invalid command: Missing necessary action or subject.");
             return "Invalid command: Missing necessary action or subject.";
         }
 
         // 4. 处理内置命令
         if (isBuiltinCommand(actionVerb)) {
-            System.out.println("Detected built-in command: " + actionVerb);
             return handleBuiltinCommand(actionVerb, things);
         }
 
         // 5. 处理游戏动作
-        System.out.println("Handling game action: " + actionVerb);
         return handleGameAction(actionVerb, subjects);
     }
 
@@ -148,7 +137,6 @@ public final class GameServer {
                 subjects.add(word);
             }
         }
-        System.out.println("在findsubjects里的subjects: " + subjects);
         return subjects;
     }
 
@@ -157,7 +145,6 @@ public final class GameServer {
         // 先检查是否是内置命令
         for (String word : commandWords) {
             if (isBuiltinCommand(word)) {
-                System.out.println("在findActionVerb里找到 内置命令: " + word);
                 return word; // 直接返回内置命令
             }
         }
@@ -165,72 +152,56 @@ public final class GameServer {
         // 再检查是否是 XML 里的游戏动作
         for (String word : commandWords) {
             if (actions.containsKey(word)) {
-                System.out.println("在findActionVerb里找到 游戏动作: " + word);
                 return word;
             }
         }
 
-        System.out.println("在findActionVerb里未找到 actionVerb");
         return null;  // 没找到匹配的动作，返回 null
     }
 
     public String handleBuiltinCommand(String action, List<String> subjects) {
         // 打印传入的命令和参数
-        System.out.println("Handling built-in command: " + action);
-        System.out.println("Subjects passed: " + subjects);
 
         if (subjects.size() > 1) return "Too many entities specified.";
 
         switch (action) {
             case "look":
-                System.out.println("Executing 'look' command.");
                 return this.handleLook();
 
             case "inventory":
             case "inv":
-                System.out.println("Executing 'inventory' command.");
                 return this.currentPlayer.listInventory();
 
             case "get":
-                System.out.println("Executing 'get' command.");
                 if (subjects.isEmpty()) {
                     return "Specify what to get.";
                 } else {
                     // 打印获取的物品
-                    System.out.println("Getting: " + subjects.get(0));
                     return this.handleGet(this.currentPlayer, new String[]{"get",subjects.get(0)});
                 }
 
             case "drop":
-                System.out.println("Executing 'drop' command.");
                 if (subjects.isEmpty()) {
                     return "Specify what to drop.";
                 } else {
                     // 打印要丢弃的物品
-                    System.out.println("Dropping: " + subjects.get(0));
                     return this.handleDrop(new String[]{"drop",subjects.get(0)});
                 }
 
             case "goto":
-                System.out.println("Executing 'goto' command.");
                 if (subjects.isEmpty()) {
                     return "Specify where to go.";
                 } else {
                     // 打印目标房间/位置
-                    System.out.println("Going to: " + subjects.get(0));
                     return this.handleGoto(new String[]{"goto",subjects.get(0)});
                 }
             case "health":  // ➕ 新增健康值检查命令
-                System.out.println("Executing 'health' command.");
                 return this.handleHealth();
 
             default:
-                System.out.println("Unknown built-in command: " + action);
                 return "Unknown built-in command.";
         }
     }
-
-
 
 
     private String handleGameAction(String actionVerb, List<String> subjects) {
@@ -240,29 +211,20 @@ public final class GameServer {
 
         // 获取单个 GameAction
         GameAction action = actions.get(actionVerb);
-        System.out.println("[DEBUG] Handling action: " + actionVerb);
 
-        // 输出动作的触发者和消耗的实体
-        System.out.println("[DEBUG] Subjects: " + subjects);
-        System.out.println("[DEBUG] Consumed entities: " + action.getConsumed());
-
-        if (subjects.containsAll(action.getSubjects())) {
-            System.out.println("[DEBUG] Action subjects matched, executing action...");
+        if (new HashSet<>(subjects).containsAll(action.getSubjects())) {
             return executeGameAction(action);
         }
 
-        System.out.println("[DEBUG] Subjects did not match.");
         return "You can't do that right now.";
     }
 
     private String executeGameAction(GameAction action) {
         Room currentRoom = currentPlayer.getCurrentRoom();
-        System.out.println("[DEBUG] Executing game action in room: " + currentRoom.getName());
 
         // **检查 Action 作用的对象 (Subjects) 是否在当前房间/玩家身上**
         for (String subject : action.getSubjects()) {
-            if (!currentRoom.hasEntity(subject) && !currentPlayer.hasItem(subject) && !entitiesLoader.getRooms().containsKey(subject)) {
-                System.out.println("[DEBUG] Subject not found in current room, inventory, or as a room: " + subject);
+            if (!currentRoom.hasEntity(subject) && currentPlayer.hasItem(subject) && !entitiesLoader.getRooms().containsKey(subject)) {
                 return "You don't see " + subject + " here.";
             }
         }
@@ -270,8 +232,7 @@ public final class GameServer {
         // **检查要消耗的实体 (Consumed) 是否存在**
         for (String entity : action.getConsumed()) {
             if (!entity.equalsIgnoreCase("health") && !currentRoom.hasEntity(entity) &&
-                    !currentPlayer.hasItem(entity) && !entitiesLoader.getRooms().containsKey(entity)) {
-                System.out.println("[DEBUG] Entity not found in current room, inventory, or as a room: " + entity);
+                    currentPlayer.hasItem(entity) && !entitiesLoader.getRooms().containsKey(entity)) {
                 return "You don't see " + entity + " here.";
             }
         }
@@ -280,18 +241,15 @@ public final class GameServer {
         for (String entity : action.getProduced()) {
             if (!entity.equalsIgnoreCase("health") && !currentRoom.hasEntity(entity) &&
                     entitiesLoader.getEntityByName(entity) == null && !entitiesLoader.getRooms().containsKey(entity)) {
-                System.out.println("[DEBUG] Entity cannot be produced here: " + entity);
                 return "You cannot create " + entity + " here.";
             }
         }
 
         // **处理健康变化**
         if (action.getConsumed().contains("health")) {
-            System.out.println("[DEBUG] Health is being consumed...");
             currentPlayer.decreaseHealth(1);
         }
         if (action.getProduced().contains("health")) {
-            System.out.println("[DEBUG] Health is being restored...");
             currentPlayer.increaseHealth(1);
         }
 
@@ -299,11 +257,8 @@ public final class GameServer {
         for (String entity : action.getConsumed()) {
             if (entity.equalsIgnoreCase("health")) continue; // 🛑 已处理 health，跳过
 
-            System.out.println("[DEBUG] Checking consumed entity: " + entity);
-
             if (entitiesLoader.getRooms().containsKey(entity)) {
                 // **如果消耗的是一个房间**
-                System.out.println("[DEBUG] Removing room exit: " + entity);
                 currentRoom.removeExit(entity); // 从当前房间的出口中移除
             } else {
                 // 先检查玩家背包
@@ -318,10 +273,8 @@ public final class GameServer {
                 }
 
                 if (artefactToRemove != null) {
-                    System.out.println("[DEBUG] Found artefact in inventory: " + artefactToRemove.getName());
                     currentPlayer.removeItem(artefactToRemove);
                 } else if (currentRoom.hasEntity(entity)) {
-                    System.out.println("[DEBUG] Found entity in room: " + entity);
                     currentRoom.removeEntityByName(entity);
                 }
             }
@@ -331,24 +284,18 @@ public final class GameServer {
         for (String entity : action.getProduced()) {
             if (entity.equalsIgnoreCase("health")) continue; // 🛑 已处理 health，跳过
 
-            System.out.println("[DEBUG] Producing entity: " + entity);
-
             if (entitiesLoader.getRooms().containsKey(entity)) {
                 // **如果生成的是一个房间**
                 Room newRoom = entitiesLoader.getRooms().get(entity);
                 currentRoom.addExit(entity, newRoom); // 将新房间添加为当前房间的出口
-                System.out.println("[DEBUG] Created new exit to room: " + newRoom.getName());
             } else {
                 // 否则尝试通过实体加载器获取物品
                 GameEntity newEntity = entitiesLoader.getEntityByName(entity);
                 if (newEntity != null) {
-                    System.out.println("[DEBUG] Adding entity to room: " + newEntity.getName());
                     currentRoom.addEntity(newEntity);
                 }
             }
         }
-
-        System.out.println("[DEBUG] Action narration: " + action.getNarration());
         return action.getNarration(); // 返回描述信息
     }
 
@@ -412,8 +359,6 @@ public final class GameServer {
         for (Room room : connectedRooms) {
             connectedRoomList.append(room.getName()).append("\n");
         }
-        System.out.println("[DEBUG] Current room: " + currentRoom.getName());
-        System.out.println("[DEBUG] Entities in room: " + currentRoom.getEntities());
         // 组合所有信息，返回给玩家
         return "You are in: " + currentRoom.getName() + "\n" +
                 roomDescription + "\n" +
@@ -466,7 +411,7 @@ public final class GameServer {
         if (word.length < 2) return "Drop what?";
         String itemName = word[1];
 
-        if (!currentPlayer.hasItem(itemName)) {
+        if (currentPlayer.hasItem(itemName)) {
             return "You don't have that item.";
         }
 

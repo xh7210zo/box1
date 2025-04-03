@@ -13,14 +13,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class EntitiesLoader {
-    private Map<String, Room> rooms;
-    private Room storeroom;
+    private final Map<String, Room> rooms;
     private static Room startingRoom;
-    private Set<String> gameEntities;  // 新增的 gameEntities 集合，用于存储所有有效的实体名称
+    private final Set<String> gameEntities;  // 新增的 gameEntities 集合，用于存储所有有效的实体名称
 
     public EntitiesLoader() {
         this.rooms = new LinkedHashMap<>();
-        this.storeroom = new Room("storeroom", "Storage for unplaced entities");
+        Room storeroom = new Room("storeroom", "Storage for unplaced entities");
         rooms.put("storeroom", storeroom);
         this.gameEntities = new HashSet<>();  // 初始化 gameEntities 集合
     }
@@ -29,9 +28,6 @@ public class EntitiesLoader {
         return rooms;
     }
 
-    public Room getStoreroom() {
-        return storeroom;
-    }
     public GameEntity getEntityByName(String entityName) {
         // 遍历所有房间中的 artefacts
         for (Room room : rooms.values()) {
@@ -52,8 +48,6 @@ public class EntitiesLoader {
             }
         }
 
-        // 如果在所有房间中没有找到该实体，则返回 null
-        System.out.println("[EntitiesLoader] Entity not found: " + entityName);
         return null;
     }
     public static Room getStartingRoom() {
@@ -91,52 +85,9 @@ public class EntitiesLoader {
                 }
             }
 
-            System.out.println("[EntitiesLoader] Debug: List of rooms and their contents:");
             for (Room room : rooms.values()) {
-                System.out.println("[EntitiesLoader] Room: " + room.getName());
-                System.out.println("[EntitiesLoader] Description: " + room.getDescription());
-
                 // 这里将物品、家具和角色的名称添加到 gameEntities 中
                 addRoomEntitiesToGameEntities(room);
-
-                // 输出房间内容
-                if (!room.getArtefacts().isEmpty()) {
-                    System.out.println("[EntitiesLoader] Artefacts:");
-                    for (Artefact artefact : room.getArtefacts()) {
-                        System.out.println("    " + artefact.getName() + ": " + artefact.getDescription());
-                    }
-                } else {
-                    System.out.println("[EntitiesLoader] No artefacts in this room.");
-                }
-
-                if (!room.getFurniture().isEmpty()) {
-                    System.out.println("[EntitiesLoader] Furniture:");
-                    for (Furniture furniture : room.getFurniture()) {
-                        System.out.println("    " + furniture.getName() + ": " + furniture.getDescription());
-                    }
-                } else {
-                    System.out.println("[EntitiesLoader] No furniture in this room.");
-                }
-
-                if (!room.getCharacters().isEmpty()) {
-                    System.out.println("[EntitiesLoader] Characters:");
-                    for (Character character : room.getCharacters()) {
-                        System.out.println("    " + character.getName() + ": " + character.getDescription());
-                    }
-                } else {
-                    System.out.println("[EntitiesLoader] No characters in this room.");
-                }
-
-                if (!room.getExits().isEmpty()) {
-                    System.out.println("[EntitiesLoader] Exits:");
-                    for (Map.Entry<String, Room> exit : room.getExits().entrySet()) {
-                        System.out.println("    Exit to: " + exit.getKey());
-                    }
-                } else {
-                    System.out.println("[EntitiesLoader] No exits in this room.");
-                }
-
-                System.out.println("[EntitiesLoader] ---");
             }
 
         } catch (IOException | ParseException e) {
@@ -161,11 +112,9 @@ public class EntitiesLoader {
             gameEntities.add(character.getName());  // 添加角色名称
         }
 
-        System.out.println("[EntitiesLoader] Game entities updated: " + gameEntities);
     }
 
     private void processLocation(Graph locationSubgraph) {
-        System.out.println("[EntitiesLoader] Processing subgraph: " + locationSubgraph.getId().getId());
 
         for (Graph subgraph : locationSubgraph.getSubgraphs()) {
             String entityType = subgraph.getId().getId();
@@ -179,7 +128,6 @@ public class EntitiesLoader {
     private void processClusterSubgraph(Graph clusterSubgraph) {
         List<Node> nodes = clusterSubgraph.getNodes(false);
         if (nodes.isEmpty()) {
-            System.out.println("[EntitiesLoader] Warning: Cluster " + clusterSubgraph.getId().getId() + " has no nodes!");
             return;
         }
 
@@ -195,12 +143,10 @@ public class EntitiesLoader {
 
         Room room = new Room(roomName, roomDescription);
         rooms.put(roomName, room);
-        System.out.println("[EntitiesLoader] Created room: " + roomName + " - " + roomDescription);
 
         // **设置第一个房间为 startingRoom**
         if (startingRoom == null) {
             startingRoom = room;
-            System.out.println("[EntitiesLoader] Setting starting room: " + startingRoom.getName());
         }
 
         // 处理房间中的子元素（artefacts、furniture、characters）
@@ -210,7 +156,6 @@ public class EntitiesLoader {
     }
 
     private void processEntities(Graph entitySubgraph, Room room, String entityType) {
-        System.out.println("[EntitiesLoader] Processing entity type: " + entityType);
 
         if (!entityType.equals("artefacts") && !entityType.equals("furniture") && !entityType.equals("characters")) {
             return;
@@ -218,50 +163,38 @@ public class EntitiesLoader {
 
         List<Node> entityNodes = entitySubgraph.getNodes(false);
 
-        if (entityNodes.isEmpty()) {
-            System.out.println("[EntitiesLoader] Warning: No entities found for entity type: " + entityType);
-        }
 
         for (Node entityNode : entityNodes) {
             String entityName = entityNode.getId().getId();
             String entityDescription = entityNode.getAttribute("description").toLowerCase();
 
-            System.out.println("[EntitiesLoader] Processing entity: " + entityName);
-            System.out.println("[EntitiesLoader] Entity Description: " + entityDescription);
-
             switch (entityType) {
                 case "artefacts":
                     Artefact artefact = new Artefact(entityName, entityDescription);
                     room.addArtefact(artefact);
-                    System.out.println("[EntitiesLoader] Added artefact: " + entityName + " to location: " + room.getName());
                     break;
 
                 case "furniture":
                     Furniture furniture = new Furniture(entityName, entityDescription);
                     room.addFurniture(furniture);
-                    System.out.println("[EntitiesLoader] Added furniture: " + entityName + " to location: " + room.getName());
                     break;
 
                 case "characters":
                     Character character = new Character(entityName, entityDescription);
                     room.addCharacter(character);
-                    System.out.println("[EntitiesLoader] Added character: " + entityName + " to location: " + room.getName());
                     break;
 
                 default:
-                    System.out.println("[EntitiesLoader] Warning: Unrecognized entity type: " + entityType + " for entity: " + entityName);
                     break;
             }
         }
     }
 
     private void processPaths(Graph mainGraph) {
-        System.out.println("[EntitiesLoader] Parsing edges for room connections...");
 
         // 只处理 subgraph paths 中定义的路径
         for (Graph subgraph : mainGraph.getSubgraphs()) {
             if (subgraph.getId().getId().equals("paths")) {
-                System.out.println("[EntitiesLoader] Parsing subgraph paths...");
 
                 // 获取 subgraph paths 中的所有连接
                 for (Edge edge : subgraph.getEdges()) {
@@ -271,16 +204,11 @@ public class EntitiesLoader {
                     Room fromRoom = rooms.get(fromRoomName);
                     Room toRoom = rooms.get(toRoomName);
 
-                    if (fromRoom != null && toRoom != null) {
-                        // 确保仅添加 subgraph paths 中定义的路径
-                        if (!fromRoom.getExits().containsKey(toRoomName)) {
-                            fromRoom.addExit(toRoomName, toRoom);
-                            System.out.println("[EntitiesLoader] Added exit from " + fromRoomName + " to " + toRoomName);
+                    if (fromRoom != null && toRoom != null&&!fromRoom.getExits().containsKey(toRoomName)) {
+                        fromRoom.addExit(toRoomName, toRoom);
                         }
 
-                    } else {
-                        System.out.println("[EntitiesLoader] Warning: Invalid exit from " + fromRoomName + " to " + toRoomName);
-                    }
+
                 }
             }
         }

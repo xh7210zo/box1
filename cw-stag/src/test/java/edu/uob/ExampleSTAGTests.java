@@ -5,10 +5,13 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
+
 import java.io.File;
 import java.nio.file.Paths;
 import java.io.IOException;
 import java.time.Duration;
+
 
 class ExampleSTAGTests {
 
@@ -33,44 +36,21 @@ class ExampleSTAGTests {
 
     @Test
   void testLook() {
-      // 创建玩家并初始化房间
-      Room startingRoom = new Room("cabin", "A cozy log cabin.");
-      Player player = new Player("simon", startingRoom);
 
-      // 打印当前房间信息以检查是否为 null
-      System.out.println("Current Room: " + player.getCurrentRoom());
-      if (player.getCurrentRoom() != null) {
-          System.out.println("Room Name: " + player.getCurrentRoom().getName());
-      } else {
-          System.out.println("Current room is null");
-      }
 
-      System.out.println("Before sending command: " + player.getCurrentRoom().getName());
       String response = sendCommandToServer("please simon: please LOOK");
-      System.out.println("After sending command: " + player.getCurrentRoom().getName());
 
       response = response.toLowerCase();
 
       // 打印响应内容，帮助调试
       System.out.println("Server response to 'look' command: " + response);
-
       assertTrue(response.contains("cabin"), "Did not see the name of the current room in response to look");
-      System.out.println("Checked for 'cabin' in the response.");
-
       assertTrue(response.contains("log cabin"), "Did not see a description of the room in response to look");
-      System.out.println("Checked for 'log cabin' in the response.");
-
       assertTrue(response.contains("magic potion"), "Did not see a description of artifacts in response to look");
-      System.out.println("Checked for 'magic potion' in the response.");
-
       assertTrue(response.contains("wooden trapdoor"), "Did not see description of furniture in response to look");
-      System.out.println("Checked for 'wooden trapdoor' in the response.");
-
       assertTrue(response.contains("forest"), "Did not see available paths in response to look");
-      System.out.println("Checked for 'forest' in the response.");
 
-
-  }
+    }
 
 
 

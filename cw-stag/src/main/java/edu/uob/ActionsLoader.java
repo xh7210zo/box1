@@ -8,7 +8,7 @@ import java.util.*;
 public class ActionsLoader {
 
     // 用于存储解析后的动作
-    private Map<String, GameAction> actions;
+    private final Map<String, GameAction> actions;
 
     public ActionsLoader() {
         this.actions = new HashMap<>();
@@ -65,7 +65,7 @@ public class ActionsLoader {
                     String narration = actionElement.getElementsByTagName("narration").item(0).getTextContent().trim();
 
                     // 创建 GameAction 对象并添加到 actions Map
-                    GameAction action = new GameAction(triggers, subjects, consumed, produced, narration);
+                    GameAction action = new GameAction(subjects, consumed, produced, narration);
                     for (String trigger : triggers) {
                         actions.put(trigger, action);
                     }
