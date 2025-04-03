@@ -1,6 +1,5 @@
 package edu.uob;
 
-import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
 
@@ -12,7 +11,7 @@ public class GameAction {
     private final String narration;      // 叙述
 
     // 构造函数
-    public GameAction(List<String> subjects, List<String> consumed, List<String> produced, String narration) {
+    public GameAction(Set<String> subjects, Set<String> consumed, Set<String> produced, String narration) {
         this.subjects = new HashSet<>(subjects);
         this.consumed = new HashSet<>(consumed);
         this.produced = new HashSet<>(produced);
