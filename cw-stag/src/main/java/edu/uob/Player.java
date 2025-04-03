@@ -48,8 +48,14 @@ public class Player extends Character {
     }
 
     public boolean hasItem(String name) {
-        return inventory.stream().noneMatch(i -> i.getName().equalsIgnoreCase(name));
+        for (Artefact item : inventory) {
+            if (item.getName().equalsIgnoreCase(name)) {
+                return false; // 如果找到了匹配的物品，返回 false
+            }
+        }
+        return true; // 如果没有找到匹配的物品，返回 true
     }
+
     // 获取当前健康值
     public int getHealth() {
         return health;
@@ -64,7 +70,7 @@ public class Player extends Character {
     public void decreaseHealth(int amount) {
         health = Math.max(0, health - amount); // 健康值不能小于 0
         if (health == 0) {
-            handlePlayerDeath();
+            this.handlePlayerDeath();
         }
     }
 
@@ -74,7 +80,7 @@ public class Player extends Character {
             currentRoom.addArtefact(item); // 将物品放回当前房间
         }
         inventory.clear(); // 清空背包
-        currentRoom = getStartingRoom(); // 将玩家传送回起始房间
+        currentRoom = this.getStartingRoom(); // 将玩家传送回起始房间
         health = 3; // 恢复最大健康值
     }
 
