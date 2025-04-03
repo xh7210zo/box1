@@ -53,13 +53,13 @@ public class ActionsLoader {
                     }
 
                     // 解析 subjects (获取 <entity> 里的值)
-                    List<String> subjects = extractEntities(actionElement, "subjects");
+                    List<String> subjects = this.extractEntities(actionElement, "subjects");
 
                     // 解析 consumed (获取 <entity> 里的值)
-                    List<String> consumed = extractEntities(actionElement, "consumed");
+                    List<String> consumed = this.extractEntities(actionElement, "consumed");
 
                     // 解析 produced (获取 <entity> 里的值)
-                    List<String> produced = extractEntities(actionElement, "produced");
+                    List<String> produced = this.extractEntities(actionElement, "produced");
 
                     // 获取 narration
                     String narration = actionElement.getElementsByTagName("narration").item(0).getTextContent().trim();
