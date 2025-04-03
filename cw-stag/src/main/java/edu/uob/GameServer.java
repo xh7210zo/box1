@@ -403,7 +403,9 @@ public final class GameServer {
 
         // 如果物品未找到
         if (itemToGet == null) {
-            return "There is no " + itemName + " here!";  // 提示物品不在房间
+            StringBuilder notFoundMessage = new StringBuilder();
+            notFoundMessage.append("There is no ").append(itemName).append(" here!");  // 提示物品不在房间
+            return notFoundMessage.toString();
         }
 
         // 将物品添加到玩家的背包
@@ -412,8 +414,12 @@ public final class GameServer {
         // 从房间移除该物品
         currentRoom.removeArtefact(itemToGet);
 
-        return "You have picked up the " + itemToGet.getName() + ".";  // 成功拾取物品
+        // 返回成功拾取物品的消息
+        StringBuilder successMessage = new StringBuilder();
+        successMessage.append("You have picked up the ").append(itemToGet.getName()).append(".");  // 成功拾取物品
+        return successMessage.toString();
     }
+
 
 
 
@@ -443,18 +449,25 @@ public final class GameServer {
     }
 
     private String handleGoto(String[] word) {
-        if (word.length < 2) return "Go where?";
+        if (word.length < 2) return "Go where?";  // 玩家没有指定目标房间
+
         String roomName = word[1];
 
         Room currentRoom = currentPlayer.getCurrentRoom();
         Room targetRoom = currentRoom.getExit(roomName);
         if (targetRoom == null) {
-            return "You can't go there.";
+            return "You can't go there.";  // 如果目标房间不存在
         }
 
         currentPlayer.moveTo(targetRoom);
-        return "You moved to: " + targetRoom.getName() + "\n" + targetRoom.describe();
+
+        // 使用 StringBuilder 来构建返回字符串
+        StringBuilder sb = new StringBuilder();
+        sb.append("You moved to: ").append(targetRoom.getName()).append("\n");
+        sb.append(targetRoom.describe());  // 添加目标房间的描述
+        return sb.toString();  // 返回构建的字符串
     }
+
 
     /**
     * Do not change the following method signature or we won't be able to mark your submission
@@ -484,16 +497,24 @@ public final class GameServer {
     */
     private void blockingHandleConnection(ServerSocket serverSocket) throws IOException {
         try (Socket s = serverSocket.accept();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(s.getInputStream()));
-        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()))) {
+             BufferedReader reader = new BufferedReader(new InputStreamReader(s.getInputStream()));
+             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()))) {
+
             System.out.println("Connection established");
+
             String incomingCommand = reader.readLine();
-            if(incomingCommand != null) {
+            if (incomingCommand != null) {
                 String result = this.handleCommand(incomingCommand);
-                writer.write(result);
-                writer.write("\n" + END_OF_TRANSMISSION + "\n");
+
+                // 使用 StringBuilder 来构建返回的内容
+                StringBuilder sb = new StringBuilder();
+                sb.append(result);
+                sb.append("\n").append(END_OF_TRANSMISSION).append("\n");
+
+                writer.write(sb.toString());  // 发送给客户端
                 writer.flush();
             }
         }
     }
+
 }
