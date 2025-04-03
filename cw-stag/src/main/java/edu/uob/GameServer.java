@@ -77,7 +77,7 @@ public final class GameServer {
     */
     public String handleCommand(String command) {
         // 1. 预处理命令（去除修饰词，转换小写）
-        String normalizedCommand = normalizeCommand(command);
+        String normalizedCommand = this.normalizeCommand(command);
 
         // 2. 拆分命令，获取有效的关键词
         String[] words = normalizedCommand.substring(normalizedCommand.lastIndexOf(":") + 1).trim().split("\\s+");
@@ -90,13 +90,13 @@ public final class GameServer {
 
         // 先检查是否是内置命令
         String actionVerb;
-        actionVerb = findActionVerb(commandWords);
+        actionVerb = this.findActionVerb(commandWords);
 
         // 4. 提取除了 actionVerb 以外的其它词
         List<String> things = new ArrayList<>(commandWords);
         things.remove(actionVerb); // 从 things 中移除动作词 actionVerb
 
-        List<String> subjects = findSubjects(commandWords);
+        List<String> subjects = this.findSubjects(commandWords);
 
         if (actionVerb == null || (subjects.isEmpty() && !isBuiltinCommand(actionVerb))) {
             return "Invalid command: Missing necessary action or subject.";
@@ -104,11 +104,11 @@ public final class GameServer {
 
         // 4. 处理内置命令
         if (isBuiltinCommand(actionVerb)) {
-            return handleBuiltinCommand(actionVerb, things);
+            return this.handleBuiltinCommand(actionVerb, things);
         }
 
         // 5. 处理游戏动作
-        return handleGameAction(actionVerb, subjects);
+        return this.handleGameAction(actionVerb, subjects);
     }
 
     public boolean isBuiltinCommand(String action) {
@@ -457,7 +457,7 @@ public final class GameServer {
         try (ServerSocket s = new ServerSocket(portNumber)) {
             while (!Thread.interrupted()) {
                 try {
-                    blockingHandleConnection(s);
+                    this.blockingHandleConnection(s);
                 } catch (IOException e) {
                     System.out.println("Connection closed");
                 }
@@ -479,7 +479,7 @@ public final class GameServer {
             System.out.println("Connection established");
             String incomingCommand = reader.readLine();
             if(incomingCommand != null) {
-                String result = handleCommand(incomingCommand);
+                String result = this.handleCommand(incomingCommand);
                 writer.write(result);
                 writer.write("\n" + END_OF_TRANSMISSION + "\n");
                 writer.flush();
