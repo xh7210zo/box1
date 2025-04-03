@@ -87,7 +87,7 @@ public class EntitiesLoader {
 
             for (Room room : rooms.values()) {
                 // 这里将物品、家具和角色的名称添加到 gameEntities 中
-                addRoomEntitiesToGameEntities(room);
+                this.addRoomEntitiesToGameEntities(room);
             }
 
         } catch (IOException | ParseException e) {
@@ -120,7 +120,7 @@ public class EntitiesLoader {
             String entityType = subgraph.getId().getId();
 
             if (entityType.startsWith("cluster")) {
-                processClusterSubgraph(subgraph);
+                this.processClusterSubgraph(subgraph);
             }
         }
     }
@@ -151,7 +151,7 @@ public class EntitiesLoader {
 
         // 处理房间中的子元素（artefacts、furniture、characters）
         for (Graph subgraph : clusterSubgraph.getSubgraphs()) {
-            processEntities(subgraph, room, subgraph.getId().getId());
+            this.processEntities(subgraph, room, subgraph.getId().getId());
         }
     }
 
