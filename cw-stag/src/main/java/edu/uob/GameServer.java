@@ -213,7 +213,7 @@ public final class GameServer {
         GameAction action = actions.get(actionVerb);
 
         if (new HashSet<>(subjects).containsAll(action.getSubjects())) {
-            return executeGameAction(action);
+            return this.executeGameAction(action);
         }
 
         return "You can't do that right now.";
@@ -222,10 +222,13 @@ public final class GameServer {
     private String executeGameAction(GameAction action) {
         Room currentRoom = currentPlayer.getCurrentRoom();
 
+
         // **检查 Action 作用的对象 (Subjects) 是否在当前房间/玩家身上**
         for (String subject : action.getSubjects()) {
             if (!currentRoom.hasEntity(subject) && currentPlayer.hasItem(subject) && !entitiesLoader.getRooms().containsKey(subject)) {
-                return "You don't see " + subject + " here.";
+                StringBuilder sb = new StringBuilder();
+                sb.append("You don't see ").append(subject).append(" here.");
+                return sb.toString();
             }
         }
 
@@ -233,7 +236,9 @@ public final class GameServer {
         for (String entity : action.getConsumed()) {
             if (!entity.equalsIgnoreCase("health") && !currentRoom.hasEntity(entity) &&
                     currentPlayer.hasItem(entity) && !entitiesLoader.getRooms().containsKey(entity)) {
-                return "You don't see " + entity + " here.";
+                StringBuilder sb = new StringBuilder();
+                sb.append("You don't see ").append(entity).append(" here.");
+                return sb.toString();
             }
         }
 
@@ -241,7 +246,9 @@ public final class GameServer {
         for (String entity : action.getProduced()) {
             if (!entity.equalsIgnoreCase("health") && !currentRoom.hasEntity(entity) &&
                     entitiesLoader.getEntityByName(entity) == null && !entitiesLoader.getRooms().containsKey(entity)) {
-                return "You cannot create " + entity + " here.";
+                StringBuilder sb = new StringBuilder();
+                sb.append("You cannot create ").append(entity).append(" here.");
+                return sb.toString();
             }
         }
 
@@ -299,13 +306,11 @@ public final class GameServer {
         return action.getNarration(); // 返回描述信息
     }
 
-
-
-
-
     private String handleHealth() {
         int currentHealth = currentPlayer.getHealth();  // 获取玩家当前健康值
-        return "Your current health is: " + currentHealth;
+        StringBuilder sb = new StringBuilder();
+        sb.append("Your current health is: ").append(currentHealth);
+        return sb.toString();
     }
 
     private String handleLook() {
@@ -359,17 +364,22 @@ public final class GameServer {
         for (Room room : connectedRooms) {
             connectedRoomList.append(room.getName()).append("\n");
         }
-        // 组合所有信息，返回给玩家
-        return "You are in: " + currentRoom.getName() + "\n" +
-                roomDescription + "\n" +
-                "Entities in this room:\n" +
-                entityList +
-                artefactsList +
-                furnitureList +
-                charactersList +
-                "Paths to other rooms:\n" +
-                connectedRoomList;
+
+        // 使用 StringBuilder 拼接所有信息
+        StringBuilder result = new StringBuilder();
+        result.append("You are in: ").append(currentRoom.getName()).append("\n")
+                .append(roomDescription).append("\n")
+                .append("Entities in this room:\n")
+                .append(entityList)
+                .append(artefactsList)
+                .append(furnitureList)
+                .append(charactersList)
+                .append("Paths to other rooms:\n")
+                .append(connectedRoomList);
+
+        return result.toString();  // 返回拼接后的结果
     }
+
 
 
 
