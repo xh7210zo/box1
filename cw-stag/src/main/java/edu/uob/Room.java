@@ -22,12 +22,7 @@ public class Room extends GameEntity {
     }
     // 移除房间出口的方法
     public void removeExit(String direction) {
-        if (exits.containsKey(direction.toLowerCase())) {
-            exits.remove(direction.toLowerCase());
-            System.out.println("[DEBUG] Exit removed: " + direction);
-        } else {
-            System.out.println("[DEBUG] No such exit to remove: " + direction);
-        }
+        exits.remove(direction.toLowerCase());
     }
 
     // 获取房间的出口
@@ -150,37 +145,60 @@ public class Room extends GameEntity {
         }
     }
 
-    // 打印房间描述
     public String describe() {
         StringBuilder sb = new StringBuilder();
         sb.append("You are in: ").append(getName()).append("\n");
         sb.append(getDescription()).append("\n");
 
+        // 处理 artefacts (物品)
         if (!artefacts.isEmpty()) {
             sb.append("You see: ");
-            artefacts.forEach(a -> sb.append(a.getName()).append(", "));
-            sb.setLength(sb.length() - 2); // 去掉最后的逗号
+            for (Artefact a : artefacts) {
+                sb.append(a.getName()).append(", ");
+            }
+            // 去掉最后的逗号
+            if (sb.charAt(sb.length() - 2) == ',') {
+                sb.setLength(sb.length() - 2);
+            }
             sb.append("\n");
         }
 
+        // 处理 furniture (家具)
         if (!furniture.isEmpty()) {
             sb.append("There is furniture: ");
-            furniture.forEach(f -> sb.append(f.getName()).append(", "));
-            sb.setLength(sb.length() - 2);
+            for (Furniture f : furniture) {
+                sb.append(f.getName()).append(", ");
+            }
+            // 去掉最后的逗号
+            if (sb.charAt(sb.length() - 2) == ',') {
+                sb.setLength(sb.length() - 2);
+            }
             sb.append("\n");
         }
 
+        // 处理 characters (角色)
         if (!characters.isEmpty()) {
             sb.append("Characters present: ");
-            characters.forEach(c -> sb.append(c.getName()).append(", "));
-            sb.setLength(sb.length() - 2);
+            for (Character c : characters) {
+                sb.append(c.getName()).append(", ");
+            }
+            // 去掉最后的逗号
+            if (sb.charAt(sb.length() - 2) == ',') {
+                sb.setLength(sb.length() - 2);
+            }
             sb.append("\n");
         }
 
+        // 处理 exits (出口)
         if (!exits.isEmpty()) {
             sb.append("You can go to: ");
-            exits.keySet().forEach(exit -> sb.append(exit).append(", "));
-            sb.setLength(sb.length() - 2);
+            for (String exit : exits.keySet()) {
+                sb.append(exit).append(", ");
+            }
+            // 去掉最后的逗号
+            if (sb.charAt(sb.length() - 2) == ',') {
+                sb.setLength(sb.length() - 2);
+            }
             sb.append("\n");
         }
 
