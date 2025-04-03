@@ -20,6 +20,15 @@ public class Room extends GameEntity {
     public void addExit(String direction, Room room) {
         exits.put(direction.toLowerCase(), room);
     }
+    // 移除房间出口的方法
+    public void removeExit(String direction) {
+        if (exits.containsKey(direction.toLowerCase())) {
+            exits.remove(direction.toLowerCase());
+            System.out.println("[DEBUG] Exit removed: " + direction);
+        } else {
+            System.out.println("[DEBUG] No such exit to remove: " + direction);
+        }
+    }
 
     // 获取房间的出口
     public Room getExit(String direction) {
@@ -78,6 +87,70 @@ public class Room extends GameEntity {
     public Set<Room> getConnectedRooms() {
         return new HashSet<>(exits.values());
     }
+
+    public boolean hasEntity(String entityName) {
+        // 检查房间内的所有物品是否包含该实体名称
+        for (Artefact artefact : artefacts) {
+            if (artefact.getName().equalsIgnoreCase(entityName)) {
+                return true;
+            }
+        }
+
+        // 检查房间内的所有家具是否包含该实体名称
+        for (Furniture furniture : furniture) {
+            if (furniture.getName().equalsIgnoreCase(entityName)) {
+                return true;
+            }
+        }
+
+        // 检查房间内的所有角色是否包含该实体名称
+        for (Character character : characters) {
+            if (character.getName().equalsIgnoreCase(entityName)) {
+                return true;
+            }
+        }
+
+        return false;  // 如果没有找到实体，返回 false
+    }
+    public boolean removeEntityByName(String entityName) {
+        // 遍历物品集合
+        for (Artefact artefact : new HashSet<>(artefacts)) {
+            if (artefact.getName().equalsIgnoreCase(entityName)) {
+                artefacts.remove(artefact);
+                return true; // 找到并移除物品
+            }
+        }
+
+        // 遍历家具集合
+        for (Furniture furniture : new HashSet<>(this.furniture)) {
+            if (furniture.getName().equalsIgnoreCase(entityName)) {
+                this.furniture.remove(furniture);
+                return true; // 找到并移除家具
+            }
+        }
+
+        // 遍历角色集合
+        for (Character character : new HashSet<>(this.characters)) {
+            if (character.getName().equalsIgnoreCase(entityName)) {
+                this.characters.remove(character);
+                return true; // 找到并移除角色
+            }
+        }
+
+        return false; // 如果没有找到匹配的实体
+    }
+    public void addEntity(GameEntity entity) {
+        if (entity instanceof Artefact) {
+            artefacts.add((Artefact) entity);  // 添加物品
+        } else if (entity instanceof Furniture) {
+            furniture.add((Furniture) entity);  // 添加家具
+        } else if (entity instanceof Character) {
+            characters.add((Character) entity);  // 添加角色
+        } else {
+            throw new IllegalArgumentException("Unsupported entity type.");
+        }
+    }
+
     // 打印房间描述
     public String describe() {
         StringBuilder sb = new StringBuilder();

@@ -7,6 +7,7 @@ import java.util.Set;
 public class Player extends Character {
     private Room currentRoom;
     private Set<Artefact> inventory; // 用 Set 存储物品，防止重复
+    private int health; // 健康属性
 
     public Player(String name, Room startingRoom) {
         super(name, "A brave adventurer");
@@ -15,6 +16,7 @@ public class Player extends Character {
         }
         this.currentRoom = startingRoom;
         this.inventory = new HashSet<>();
+        this.health = 3; // 初始化健康为 3
     }
 
     public Room getCurrentRoom() {
@@ -48,7 +50,41 @@ public class Player extends Character {
     public boolean hasItem(String name) {
         return inventory.stream().anyMatch(i -> i.getName().equalsIgnoreCase(name));
     }
+    // 获取当前健康值
+    public int getHealth() {
+        return health;
+    }
 
+    // 增加健康
+    public void increaseHealth(int amount) {
+        health = Math.min(3, health + amount); // 健康值最多为 3
+    }
+
+    // 减少健康
+    public void decreaseHealth(int amount) {
+        health = Math.max(0, health - amount); // 健康值不能小于 0
+        if (health == 0) {
+            handlePlayerDeath();
+        }
+    }
+
+    // 处理死亡
+    private void handlePlayerDeath() {
+        // 玩家死亡处理：丢失所有物品并返回起始房间
+        System.out.println("你死亡并失去了所有物品，你必须返回游戏的起始地点");
+        for (Artefact item : inventory) {
+            currentRoom.addArtefact(item); // 将物品放回当前房间
+        }
+        inventory.clear(); // 清空背包
+        currentRoom = getStartingRoom(); // 将玩家传送回起始房间
+        health = 3; // 恢复最大健康值
+    }
+
+    // 返回起始房间
+    private Room getStartingRoom() {
+        // 假设我们有一个固定的起始房间
+        return EntitiesLoader.getStartingRoom();
+    }
     // ✅ 实现 listInventory() 方法
     public String listInventory() {
         if (inventory.isEmpty()) {

@@ -9,16 +9,20 @@ import java.io.*;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.HashSet;
+import java.util.Set;
 
 public class EntitiesLoader {
     private Map<String, Room> rooms;
     private Room storeroom;
-    private Room startingRoom;
+    private static Room startingRoom;
+    private Set<String> gameEntities;  // 新增的 gameEntities 集合，用于存储所有有效的实体名称
 
     public EntitiesLoader() {
         this.rooms = new LinkedHashMap<>();
         this.storeroom = new Room("storeroom", "Storage for unplaced entities");
         rooms.put("storeroom", storeroom);
+        this.gameEntities = new HashSet<>();  // 初始化 gameEntities 集合
     }
 
     public Map<String, Room> getRooms() {
@@ -28,9 +32,36 @@ public class EntitiesLoader {
     public Room getStoreroom() {
         return storeroom;
     }
+    public GameEntity getEntityByName(String entityName) {
+        // 遍历所有房间中的 artefacts
+        for (Room room : rooms.values()) {
+            for (Artefact artefact : room.getArtefacts()) {
+                if (artefact.getName().equalsIgnoreCase(entityName)) {
+                    return artefact;
+                }
+            }
+            for (Furniture furniture : room.getFurniture()) {
+                if (furniture.getName().equalsIgnoreCase(entityName)) {
+                    return furniture;
+                }
+            }
+            for (Character character : room.getCharacters()) {
+                if (character.getName().equalsIgnoreCase(entityName)) {
+                    return character;
+                }
+            }
+        }
 
-    public Room getStartingRoom() {
+        // 如果在所有房间中没有找到该实体，则返回 null
+        System.out.println("[EntitiesLoader] Entity not found: " + entityName);
+        return null;
+    }
+    public static Room getStartingRoom() {
         return startingRoom;
+    }
+
+    public Set<String> getGameEntities() {
+        return gameEntities;  // 提供访问 gameEntities 集合的方法
     }
 
     public void loadEntities(File entitiesFile) {
@@ -38,7 +69,6 @@ public class EntitiesLoader {
 
         try {
             BufferedReader bufferedReader = new BufferedReader(new FileReader(entitiesFile));
-            System.out.println("[EntitiesLoader] Parsing entities file...");
             parser.parse(bufferedReader);
             List<Graph> graphs = parser.getGraphs();
             Graph mainGraph = graphs.get(0);
@@ -53,7 +83,6 @@ public class EntitiesLoader {
                 for (Room room : rooms.values()) {
                     if (!room.getName().startsWith("cluster")) {
                         startingRoom = room;
-                        System.out.println("[EntitiesLoader] Setting starting room: " + startingRoom.getName());
                         break;
                     }
                 }
@@ -67,6 +96,10 @@ public class EntitiesLoader {
                 System.out.println("[EntitiesLoader] Room: " + room.getName());
                 System.out.println("[EntitiesLoader] Description: " + room.getDescription());
 
+                // 这里将物品、家具和角色的名称添加到 gameEntities 中
+                addRoomEntitiesToGameEntities(room);
+
+                // 输出房间内容
                 if (!room.getArtefacts().isEmpty()) {
                     System.out.println("[EntitiesLoader] Artefacts:");
                     for (Artefact artefact : room.getArtefacts()) {
@@ -109,6 +142,26 @@ public class EntitiesLoader {
         } catch (IOException | ParseException e) {
             throw new RuntimeException("[EntitiesLoader] Error loading entities file", e);
         }
+    }
+
+    // 新增方法，将房间中的物品、家具和角色名称添加到 gameEntities 中
+    private void addRoomEntitiesToGameEntities(Room room) {
+        // 添加物品（artefacts）
+        for (Artefact artefact : room.getArtefacts()) {
+            gameEntities.add(artefact.getName());  // 添加物品名称
+        }
+
+        // 添加家具（furniture）
+        for (Furniture furniture : room.getFurniture()) {
+            gameEntities.add(furniture.getName());  // 添加家具名称
+        }
+
+        // 添加角色（characters）
+        for (Character character : room.getCharacters()) {
+            gameEntities.add(character.getName());  // 添加角色名称
+        }
+
+        System.out.println("[EntitiesLoader] Game entities updated: " + gameEntities);
     }
 
     private void processLocation(Graph locationSubgraph) {
@@ -232,7 +285,4 @@ public class EntitiesLoader {
             }
         }
     }
-
-
-
 }
