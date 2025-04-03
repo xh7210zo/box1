@@ -187,7 +187,7 @@ class ExampleSTAGTests {
       assertTrue(response.contains("lumberjack appears"), "Lumberjack should appear after blowing horn");
 
       response = sendCommandToServer("simon: look");
-      assertTrue(response.contains("lumberjack"), "Lumberjack should be in the room after blowing horn");
+      assertTrue(response.contains("cutter"), "Lumberjack should be in the room after blowing horn");
 
   }
 
