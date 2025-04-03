@@ -17,7 +17,6 @@ class ExampleSTAGTestss {
     // Create a new server _before_ every @Test
     @BeforeEach
     void setup() {
-        setupExecuted = true;
         File entitiesFile = Paths.get("config" + File.separator + "extended-entities.dot").toAbsolutePath().toFile();
         File actionsFile = Paths.get("config" + File.separator + "extended-actions.xml").toAbsolutePath().toFile();
         server = new GameServer(entitiesFile, actionsFile);
@@ -34,7 +33,6 @@ class ExampleSTAGTestss {
     // A lot of tests will probably check the game state using 'look' - so we better make sure 'look' works well !
     @Test
     void testLook() {
-        assertTrue(setupExecuted, "BeforeEach setup was not executed before LOOK.");
         String response = sendCommandToServer("simon: look");
         response = response.toLowerCase();
         assertTrue(response.contains("cabin"), "Did not see the name of the current room in response to look");
@@ -47,7 +45,6 @@ class ExampleSTAGTestss {
     // Test that we can pick something up and that it appears in our inventory
     @Test
     void testGet() {
-        assertTrue(setupExecuted, "BeforeEach setup was not executed before GET.");
         String response;
         sendCommandToServer("simon: get potion");
         response = sendCommandToServer("simon: inv");
@@ -61,7 +58,6 @@ class ExampleSTAGTestss {
     // Test that we can goto a different location (we won't get very far if we can't move around the game !)
     @Test
     void testGoto() {
-        assertTrue(setupExecuted, "BeforeEach setup was not executed before GOTO.");
         sendCommandToServer("simon: goto forest");
         String response = sendCommandToServer("simon: look");
         response = response.toLowerCase();
