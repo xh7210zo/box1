@@ -77,7 +77,15 @@ public final class GameServer {
         String normalizedCommand = this.normalizeCommand(command);
 
         // 2. 拆分命令，获取有效的关键词（避免使用 ArrayList）
-        String commandPart = normalizedCommand.substring(normalizedCommand.lastIndexOf(":") + 1).trim();
+        StringBuilder commandPartBuilder = new StringBuilder(normalizedCommand);
+        int colonIndex = commandPartBuilder.lastIndexOf(":");
+        String commandPart;
+        if (colonIndex >= 0) {
+            commandPart = commandPartBuilder.substring(colonIndex + 1).trim();
+        } else {
+            commandPart = "";
+        }
+
         Set<String> commandWords = new LinkedHashSet<>();
 
         try (Scanner scanner = new Scanner(commandPart)) {
