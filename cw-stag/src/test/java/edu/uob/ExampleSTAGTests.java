@@ -44,8 +44,6 @@ class ExampleSTAGTests {
       String response = sendCommandToServer("please simon: please LOOK");
 
       response = response.toLowerCase();
-
-      // 打印响应内容，帮助调试
       assertTrue(response.contains("cabin"), "Did not see the name of the current room in response to look");
       assertTrue(response.contains("log cabin"), "Did not see a description of the room in response to look");
       assertTrue(response.contains("magic potion"), "Did not see a description of artifacts in response to look");
