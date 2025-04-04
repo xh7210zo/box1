@@ -17,8 +17,14 @@ class ExampleSTAGTests {
   // Create a new server _before_ every @Test
   @BeforeEach
   void setup() {
-      File entitiesFile = Paths.get("config" + File.separator + "extended-entities.dot").toAbsolutePath().toFile();
-      File actionsFile = Paths.get("config" + File.separator + "extended-actions.xml").toAbsolutePath().toFile();
+      StringBuilder entitiesPath = new StringBuilder();
+      entitiesPath.append("config").append(File.separator).append("extended-entities.dot");
+
+      StringBuilder actionsPath = new StringBuilder();
+      actionsPath.append("config").append(File.separator).append("extended-actions.xml");
+
+      File entitiesFile = Paths.get(entitiesPath.toString()).toAbsolutePath().toFile();
+      File actionsFile = Paths.get(actionsPath.toString()).toAbsolutePath().toFile();
       server = new GameServer(entitiesFile, actionsFile);
   }
 
