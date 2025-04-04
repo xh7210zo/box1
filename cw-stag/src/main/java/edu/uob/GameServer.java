@@ -72,7 +72,7 @@ public final class GameServer {
     * @param command The incoming command to be processed
     */
     public String handleCommand(String command) {
-        String playerName = extractPlayerName(command);
+        String playerName = this.extractPlayerName(command);
         if (!isValidPlayerName(playerName)) {
             return "Invalid player name.";
         }
@@ -80,7 +80,7 @@ public final class GameServer {
         // Retrieve or create the player
         Player player = players.get(playerName);
         if (player == null) {
-            player = createNewPlayer(playerName);
+            player = this.createNewPlayer(playerName);
             players.put(playerName, player);
         }
 
