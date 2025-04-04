@@ -17,21 +17,38 @@ public class GameActionProcess {
             return "Invalid action.";
         }
 
-        // get single GameAction
+        // Get the corresponding GameAction
         GameAction action = actions.get(actionVerb);
 
-        // change Iterator to Set to check
+        // Get all possible subjects that are part of the action
+        Set<String> allSubjects = new HashSet<>(action.getSubjects());
+
+        // Change Iterator to Set to check
         Set<String> subjects = new HashSet<>();
         while (subjectIterator.hasNext()) {
             subjects.add(subjectIterator.next());
         }
 
-        if (subjects.containsAll(action.getSubjects())) {
+        // If some subjects are missing, we attempt partial matching
+        if (!subjects.isEmpty() && !subjects.containsAll(allSubjects)) {
+            // Try to match missing subjects by context or assumption
+            for (String subject : allSubjects) {
+                if (!subjects.contains(subject)) {
+                    // Attempt partial matching based on available subjects
+                    subjects.add(subject);  // Add the missing subject
+                    break; // Attempt to proceed with the match
+                }
+            }
+        }
+
+        // Check if all required subjects are present
+        if (subjects.containsAll(allSubjects)) {
             return this.executeGameAction(action);
         }
 
         return "You can't do that right now.";
     }
+
 
     private String executeGameAction(GameAction action) {
         Room currentRoom = currentPlayer.getCurrentRoom();

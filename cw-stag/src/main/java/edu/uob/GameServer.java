@@ -71,35 +71,35 @@ public final class GameServer {
     */
     public String handleCommand(String command) {
 
-        // 1. remove modifiersand  convert to  lowercase
+        // 1. Remove modifiers and convert to lowercase
         CommandParser commandParser = new CommandParser(decorativeWords);
         String normalizedCommand = commandParser.normalizeCommand(command);
 
-        // 2. split the command to get valid keywords
+        // 2. Split the command to get valid keywords
         Set<String> commandWords = commandParser.extractCommandWords(normalizedCommand);
 
-        // 3. parse command
+        // 3. Parse command to find the action verb
         String actionVerb = this.findActionVerb(commandWords);
 
-        // 4. get words other than actionVerb
+        // 4. Get words other than the action verb (subjects)
         commandWords.remove(actionVerb);
-
         Iterator<String> subjectIterator = this.findSubjects(commandWords).iterator();
 
         if (actionVerb == null || (!subjectIterator.hasNext() && !isBuiltinCommand(actionVerb))) {
             return "Invalid command: Missing necessary action or subject.";
         }
 
-        // 5. handle built-in command
+        // 5. Handle built-in commands
         BuiltinCommandProcess builtinCommandHandler = new BuiltinCommandProcess(currentPlayer);
         if (isBuiltinCommand(actionVerb)) {
             return builtinCommandHandler.handleBuiltinCommand(actionVerb, commandWords);
         }
 
-        // 6. handle game actions
+        // 6. Handle game actions with partial subject matching
         GameActionProcess actionHandler = new GameActionProcess(actions, currentPlayer, entitiesLoader);
         return actionHandler.handleGameAction(actionVerb, subjectIterator);
     }
+
 
     public boolean isBuiltinCommand(String action) {
         // check if it is built-in command
