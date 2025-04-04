@@ -1,12 +1,12 @@
 package edu.uob;
 import java.util.*;
 
-public class GameActionHandler {
+public class GameActionProcess {
     private final Map<String, GameAction> actions;
     private final Player currentPlayer;
     private final EntitiesLoader entitiesLoader;
 
-    public GameActionHandler(Map<String, GameAction> actions, Player currentPlayer, EntitiesLoader entitiesLoader) {
+    public GameActionProcess(Map<String, GameAction> actions, Player currentPlayer, EntitiesLoader entitiesLoader) {
         this.actions = actions;
         this.currentPlayer = currentPlayer;
         this.entitiesLoader = entitiesLoader;

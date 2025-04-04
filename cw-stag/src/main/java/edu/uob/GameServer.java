@@ -91,13 +91,13 @@ public final class GameServer {
         }
 
         // 5. handle built-in command
-        BuiltinCommandHandler builtinCommandHandler = new BuiltinCommandHandler(currentPlayer);
+        BuiltinCommandProcess builtinCommandHandler = new BuiltinCommandProcess(currentPlayer);
         if (isBuiltinCommand(actionVerb)) {
             return builtinCommandHandler.handleBuiltinCommand(actionVerb, commandWords);
         }
 
         // 6. handle game actions
-        GameActionHandler actionHandler = new GameActionHandler(actions, currentPlayer, entitiesLoader);
+        GameActionProcess actionHandler = new GameActionProcess(actions, currentPlayer, entitiesLoader);
         return actionHandler.handleGameAction(actionVerb, subjectIterator);
     }
 

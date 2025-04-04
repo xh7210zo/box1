@@ -2,11 +2,11 @@ package edu.uob;
 
 import java.util.*;
 
-public class BuiltinCommandHandler {
+public class BuiltinCommandProcess {
 
     private final Player currentPlayer;
 
-    public BuiltinCommandHandler(Player currentPlayer) {
+    public BuiltinCommandProcess(Player currentPlayer) {
         this.currentPlayer = currentPlayer;
     }
 
