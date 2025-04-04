@@ -3,6 +3,7 @@ package edu.uob;
 import java.util.*;
 
 public class BuiltinCommandHandler {
+
     private final Player currentPlayer;
 
     public BuiltinCommandHandler(Player currentPlayer) {
@@ -24,19 +25,19 @@ public class BuiltinCommandHandler {
             if (subjectIterator.hasNext()) {
                 return this.handleGet(this.currentPlayer, subjectIterator);
             } else {
-                return "Specify what to get.";
+                return "what to get?";
             }
         } else if (action.equals("drop")) {
             if (subjectIterator.hasNext()) {
                 return this.handleDrop(subjectIterator);
             } else {
-                return "Specify what to drop.";
+                return "what to drop?";
             }
         } else if (action.equals("goto")) {
             if (subjectIterator.hasNext()) {
                 return this.handleGoto(subjectIterator);
             } else {
-                return "Specify where to go.";
+                return "where to go?";
             }
         } else if (action.equals("health")) {
             return this.handleHealth();
@@ -46,27 +47,28 @@ public class BuiltinCommandHandler {
     }
 
     private String handleHealth() {
-        int currentHealth = currentPlayer.getHealth();  // 获取玩家当前健康值
-        StringBuilder sb = new StringBuilder();
-        sb.append("Your current health is: ").append(currentHealth);
-        return sb.toString();
+
+        //get current health of the player
+        int currentHealth = currentPlayer.getHealth();
+        StringBuilder s = new StringBuilder();
+        s.append("Your current health is: ").append(currentHealth);
+        return s.toString();
     }
 
     private String handleLook() {
-        // 获取当前玩家所在的房间
-        Room currentRoom = currentPlayer.getCurrentRoom();
 
-        // 获取房间的描述
+        // get current room of player and the description
+        Room currentRoom = currentPlayer.getCurrentRoom();
         String roomDescription = currentRoom.getDescription();
 
-        // 获取该房间的所有实体（物体或 NPC 等）
+        // get all the entities
         Set<GameEntity> entities = currentRoom.getEntities();
         StringBuilder entityList = new StringBuilder();
         for (GameEntity entity : entities) {
             entityList.append(entity.getName()).append(": ").append(entity.getDescription()).append("\n");
         }
 
-        // 获取该房间的所有 artefacts、furniture 和 characters
+        // get artefacts、furniture 和 characters
         StringBuilder artefactsList = new StringBuilder();
         if (!currentRoom.getArtefacts().isEmpty()) {
             artefactsList.append("Artefacts:\n");
@@ -74,7 +76,7 @@ public class BuiltinCommandHandler {
                 artefactsList.append("    ").append(artefact.getName()).append(": ").append(artefact.getDescription()).append("\n");
             }
         } else {
-            artefactsList.append("[EntitiesLoader] No artefacts in this room.\n");
+            artefactsList.append("No artefacts in this room.\n");
         }
 
         StringBuilder furnitureList = new StringBuilder();
@@ -84,7 +86,7 @@ public class BuiltinCommandHandler {
                 furnitureList.append("    ").append(furniture.getName()).append(": ").append(furniture.getDescription()).append("\n");
             }
         } else {
-            furnitureList.append("[EntitiesLoader] No furniture in this room.\n");
+            furnitureList.append("No furniture in this room.\n");
         }
 
         StringBuilder charactersList = new StringBuilder();
@@ -94,17 +96,17 @@ public class BuiltinCommandHandler {
                 charactersList.append("    ").append(character.getName()).append(": ").append(character.getDescription()).append("\n");
             }
         } else {
-            charactersList.append("[EntitiesLoader] No characters in this room.\n");
+            charactersList.append("No characters in this room.\n");
         }
 
-        // 获取当前房间的所有连接（通向其他房间的路径）
-        Set<Room> connectedRooms = currentRoom.getConnectedRooms(); // 不再强制转换为 List
+        // get all the exits in the room
+        Set<Room> connectedRooms = currentRoom.getConnectedRooms();
         StringBuilder connectedRoomList = new StringBuilder();
         for (Room room : connectedRooms) {
             connectedRoomList.append(room.getName()).append("\n");
         }
 
-        // 使用 StringBuilder 拼接所有信息
+        // return all the information
         StringBuilder result = new StringBuilder();
         result.append("You are in: ").append(currentRoom.getName()).append("\n")
                 .append(roomDescription).append("\n")
@@ -115,8 +117,7 @@ public class BuiltinCommandHandler {
                 .append(charactersList)
                 .append("Paths to other rooms:\n")
                 .append(connectedRoomList);
-
-        return result.toString();  // 返回拼接后的结果
+        return result.toString();
     }
 
     public String handleGet(Player currentPlayer, Iterator<String> wordIterator) {
@@ -144,9 +145,9 @@ public class BuiltinCommandHandler {
         currentPlayer.addItem(itemToGet);
         currentRoom.removeArtefact(itemToGet);
 
-        StringBuilder sb = new StringBuilder();
-        sb.append("You have picked up the ").append(itemToGet.getName()).append(".");
-        return sb.toString();
+        StringBuilder s = new StringBuilder();
+        s.append("You have picked up the ").append(itemToGet.getName()).append(".");
+        return s.toString();
     }
 
     private String handleDrop(Iterator<String> wordIterator) {
@@ -177,30 +178,31 @@ public class BuiltinCommandHandler {
         currentPlayer.removeItem(itemToDrop);
         currentPlayer.getCurrentRoom().addArtefact(itemToDrop);
 
-        StringBuilder sb = new StringBuilder();
-        sb.append("You dropped: ").append(itemToDrop.getName());
-        return sb.toString();
+        StringBuilder s = new StringBuilder();
+        s.append("You dropped: ").append(itemToDrop.getName());
+        return s.toString();
     }
 
     private String handleGoto(Iterator<String> wordIterator) {
         if (!wordIterator.hasNext()) {
-            return "Go where?";  // 玩家没有指定目标房间
+            return "Go where?";
         }
 
-        String roomName = wordIterator.next();  // 通过迭代器获取目标房间名称
+        //use iterator to get name of room
+        String roomName = wordIterator.next();
 
         Room currentRoom = currentPlayer.getCurrentRoom();
         Room targetRoom = currentRoom.getExit(roomName);
+        //if the room doesn't exist
         if (targetRoom == null) {
-            return "You can't go there.";  // 如果目标房间不存在
+            return "You can't go there.";
         }
 
         currentPlayer.moveTo(targetRoom);
 
-        // 使用 StringBuilder 来构建返回字符串
-        StringBuilder sb = new StringBuilder();
-        sb.append("You moved to: ").append(targetRoom.getName()).append("\n");
-        sb.append(targetRoom.describe());  // 添加目标房间的描述
-        return sb.toString();
+        StringBuilder s = new StringBuilder();
+        s.append("You moved to: ").append(targetRoom.getName()).append("\n");
+        s.append(targetRoom.describe());
+        return s.toString();
     }
 }

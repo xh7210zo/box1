@@ -10,7 +10,6 @@ import java.io.File;
 import java.nio.file.Paths;
 import java.time.Duration;
 
-
 class ExampleSTAGTests {
 
   private GameServer server;

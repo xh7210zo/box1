@@ -10,12 +10,12 @@ import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-
 public final class GameServer {
 
+    //initialize variables
     private static final char END_OF_TRANSMISSION = 4;
-    private final EntitiesLoader entitiesLoader;  // 添加成员变量
-    private final Map<String, GameAction> actions;  // 添加 actions 变量
+    private final EntitiesLoader entitiesLoader;
+    private final Map<String, GameAction> actions;
     private final Player currentPlayer;
     Set<String> decorativeWords = new HashSet<>(Arrays.asList("please", "the", "using", "with", "to"));
 
@@ -49,20 +49,18 @@ public final class GameServer {
         this.entitiesLoader = new EntitiesLoader();
         entitiesLoader.loadEntities(entitiesFile);
 
-        // 获取起始房间
-        Room startingRoom = entitiesLoader.getStartingRoom(); // 从EntitiesLoader中获取起始房间
+        // get startingRoom in EntitiesLoader
+        Room startingRoom = entitiesLoader.getStartingRoom();
         if (startingRoom == null) {
             throw new IllegalStateException("[GameServer] Error: No valid starting room found! Please check your .dot file.");
         }
 
         this.currentPlayer = new Player("Player1", startingRoom, entitiesLoader);
 
-
-        // 添加 actionsLoader
+        // add actionsLoader and get action list
         ActionsLoader actionsLoader = new ActionsLoader();
         actionsLoader.loadActions(actionsFile);
-        this.actions = actionsLoader.getActions(); // 获取加载的动作列表
-
+        this.actions = actionsLoader.getActions();
     }
 
     /**
@@ -72,17 +70,18 @@ public final class GameServer {
     * @param command The incoming command to be processed
     */
     public String handleCommand(String command) {
-        // 1. 预处理命令（去除修饰词，转换小写）
+
+        // 1. remove modifiersand  convert to  lowercase
         CommandParser commandParser = new CommandParser(decorativeWords);
         String normalizedCommand = commandParser.normalizeCommand(command);
 
-        // 2. 拆分命令，获取有效的关键词
+        // 2. split the command to get valid keywords
         Set<String> commandWords = commandParser.extractCommandWords(normalizedCommand);
 
-        // 3. 解析命令
+        // 3. parse command
         String actionVerb = this.findActionVerb(commandWords);
 
-        // 4. 提取除了 actionVerb 以外的其它词
+        // 4. get words other than actionVerb
         commandWords.remove(actionVerb);
 
         Iterator<String> subjectIterator = this.findSubjects(commandWords).iterator();
@@ -91,19 +90,19 @@ public final class GameServer {
             return "Invalid command: Missing necessary action or subject.";
         }
 
-        // 5. 处理内置命令
+        // 5. handle built-in command
         BuiltinCommandHandler builtinCommandHandler = new BuiltinCommandHandler(currentPlayer);
         if (isBuiltinCommand(actionVerb)) {
             return builtinCommandHandler.handleBuiltinCommand(actionVerb, commandWords);
         }
 
-        // 6. 处理游戏动作
+        // 6. handle game actions
         GameActionHandler actionHandler = new GameActionHandler(actions, currentPlayer, entitiesLoader);
         return actionHandler.handleGameAction(actionVerb, subjectIterator);
     }
 
     public boolean isBuiltinCommand(String action) {
-        // 直接判断是否是内置命令
+        // check if it is built-in command
         return action.equals("look") || action.equals("inventory") || action.equals("inv") || action.equals("get")
                 || action.equals("drop") || action.equals("goto")|| action.equals("health");
     }
@@ -120,21 +119,20 @@ public final class GameServer {
     }
 
     private String findActionVerb(Set<String> commandWords) {
-        // 先检查是否是内置命令
+        // check if its built-in command
         for (String word : commandWords) {
             if (isBuiltinCommand(word)) {
-                return word; // 直接返回内置命令
+                return word;
             }
         }
 
-        // 再检查是否是 XML 里的游戏动作
+        // check if its action in .xml file
         for (String word : commandWords) {
             if (actions.containsKey(word)) {
                 return word;
             }
         }
-
-        return null;  // 没找到匹配的动作，返回 null
+        return null;
     }
 
     /**
@@ -174,12 +172,11 @@ public final class GameServer {
             if (incomingCommand != null) {
                 String result = this.handleCommand(incomingCommand);
 
-                // 使用 StringBuilder 来构建返回的内容
                 StringBuilder sb = new StringBuilder();
                 sb.append(result);
                 sb.append("\n").append(END_OF_TRANSMISSION).append("\n");
 
-                writer.write(sb.toString());  // 发送给客户端
+                writer.write(sb.toString());
                 writer.flush();
             }
         }

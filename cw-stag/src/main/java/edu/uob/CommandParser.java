@@ -11,7 +11,6 @@ public class CommandParser {
     public String normalizeCommand(String command) {
         command = command.toLowerCase();
 
-        // 用 LinkedList 代替 ArrayList
         Deque<String> wordsDeque = new LinkedList<>();
         try (Scanner scanner = new Scanner(command)) {
             while (scanner.hasNext()) {
@@ -19,10 +18,8 @@ public class CommandParser {
             }
         }
 
-        // 移除修饰词
+        // remove all the decorative words
         wordsDeque.removeAll(decorativeWords);
-
-        // 使用 StringBuilder 进行拼接，避免使用 `String.join()`
         StringBuilder sb = new StringBuilder();
         Iterator<String> iterator = wordsDeque.iterator();
         while (iterator.hasNext()) {
@@ -31,7 +28,6 @@ public class CommandParser {
                 sb.append(" ");
             }
         }
-
         return sb.toString();
     }
 
@@ -44,7 +40,6 @@ public class CommandParser {
         } else {
             commandPart = "";
         }
-
         Set<String> commandWords = new LinkedHashSet<>();
         try (Scanner scanner = new Scanner(commandPart)) {
             while (scanner.hasNext()) {

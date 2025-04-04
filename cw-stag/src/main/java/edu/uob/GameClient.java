@@ -18,25 +18,21 @@ public final class GameClient {
 
     public static void main(String[] args) throws IOException {
 
-
         String username = args[0];
         GameClient gameClient = new GameClient();
         while (!Thread.interrupted()) {
-            gameClient.handleNextCommand(username);  // Using 'this' (gameClient) to call the method
+            gameClient.handleNextCommand(username);
         }
     }
 
     private void handleNextCommand(String username) throws IOException {
-        // Using StringBuilder for string concatenation
         BufferedReader commandLine = new BufferedReader(new InputStreamReader(System.in));
         String command = commandLine.readLine();
 
-        // Using String.format() for the string construction
         try (var socket = new Socket("localhost", 8888);
              var socketReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
              var socketWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()))) {
 
-            // Using String.format() instead of string concatenation
             socketWriter.write(String.format("%s: %s%n", username, command));
             socketWriter.flush();
 
@@ -45,7 +41,6 @@ public final class GameClient {
                 throw new IOException("Server disconnected (end-of-stream)");
             }
 
-            // Using StringBuilder to build the message (for efficiency)
             while (incomingMessage != null && !incomingMessage.contains(String.valueOf(END_OF_TRANSMISSION))) {
                 System.out.println(incomingMessage);
                 incomingMessage = socketReader.readLine();

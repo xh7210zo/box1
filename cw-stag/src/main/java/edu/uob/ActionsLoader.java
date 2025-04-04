@@ -7,7 +7,7 @@ import java.util.*;
 
 public class ActionsLoader {
 
-    // 用于存储解析后的动作
+    // store actions
     private final Map<String, GameAction> actions;
 
     public ActionsLoader() {
@@ -18,76 +18,54 @@ public class ActionsLoader {
         return actions;
     }
 
-    /**
-     * 从 XML 文件加载动作
-     *
-     * @param actionsFile XML 文件
-     */
     public void loadActions(File actionsFile) {
         try {
-            // 创建 DocumentBuilderFactory
+            // create DocumentBuilderFactory
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
 
-            // 解析 XML 文件
+            // parse .xml and get all the action elements
             Document doc = builder.parse(actionsFile);
             doc.getDocumentElement().normalize(); // 规范化 XML 结构
-
-            // 获取所有的 action 元素
             NodeList actionNodes = doc.getElementsByTagName("action");
 
-            // 遍历所有的 action 节点
+            //go through all the action nodes
             for (int i = 0; i < actionNodes.getLength(); i++) {
                 Node actionNode = actionNodes.item(i);
 
-                // 确保是元素节点
+                // ensure it's element node
                 if (actionNode.getNodeType() == Node.ELEMENT_NODE) {
                     Element actionElement = (Element) actionNode;
 
-                    // 解析 triggers (获取 <keyphrase> 里的值)
+                    // parse triggers get key of keyphrase
                     NodeList triggerNodes = actionElement.getElementsByTagName("keyphrase");
-                    Set<String> triggers = new HashSet<>(); // 使用 Set 来存储触发词
+                    Set<String> triggers = new HashSet<>();
                     for (int j = 0; j < triggerNodes.getLength(); j++) {
                         String trigger = triggerNodes.item(j).getTextContent().trim();
                         triggers.add(trigger);
                     }
 
-                    // 解析 subjects (获取 <entity> 里的值)
+                    // parse subjects、consumed and produced and get narration
                     Set<String> subjects = this.extractEntities(actionElement, "subjects");
-
-                    // 解析 consumed (获取 <entity> 里的值)
                     Set<String> consumed = this.extractEntities(actionElement, "consumed");
-
-                    // 解析 produced (获取 <entity> 里的值)
                     Set<String> produced = this.extractEntities(actionElement, "produced");
-
-                    // 获取 narration
                     String narration = actionElement.getElementsByTagName("narration").item(0).getTextContent().trim();
 
-                    // 创建 GameAction 对象并添加到 actions Map
+                    // create GameAction and add to actions Map
                     GameAction action = new GameAction(subjects, consumed, produced, narration);
                     for (String trigger : triggers) {
                         actions.put(trigger, action);
                     }
                 }
             }
-
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("Error loading actions file", e);
         }
     }
 
-    /**
-     * 从 XML 文件中解析指定节点的 <entity> 值
-     *
-     * @param actionElement action 的 Element 节点
-     * @param tagName       需要提取的标签 (如 "subjects", "consumed", "produced")
-     * @return 该标签下的所有 entity 值的 Set
-     */
     private Set<String> extractEntities(Element actionElement, String tagName) {
-        Set<String> entities = new HashSet<>(); // 使用 Set 来存储实体，避免重复
-
+        Set<String> entities = new HashSet<>();
         NodeList parentNodeList = actionElement.getElementsByTagName(tagName);
 
         if (parentNodeList.getLength() > 0) {
@@ -99,7 +77,6 @@ public class ActionsLoader {
                 entities.add(entity);
             }
         }
-
         return entities;
     }
 }

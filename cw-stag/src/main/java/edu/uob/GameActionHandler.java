@@ -17,10 +17,10 @@ public class GameActionHandler {
             return "Invalid action.";
         }
 
-        // 获取单个 GameAction
+        // get single GameAction
         GameAction action = actions.get(actionVerb);
 
-        // 将 Iterator 转换为 Set 以进行 containsAll 检查
+        // change Iterator to Set to check
         Set<String> subjects = new HashSet<>();
         while (subjectIterator.hasNext()) {
             subjects.add(subjectIterator.next());
@@ -37,7 +37,7 @@ public class GameActionHandler {
         Room currentRoom = currentPlayer.getCurrentRoom();
 
 
-        // **检查 Action 作用的对象 (Subjects) 是否在当前房间/玩家身上**
+        // check if the subject exists in the inventory or room
         for (String subject : action.getSubjects()) {
             if (!currentRoom.hasEntity(subject) && currentPlayer.hasItem(subject) && !entitiesLoader.getRooms().containsKey(subject)) {
                 StringBuilder sb = new StringBuilder();
@@ -46,7 +46,7 @@ public class GameActionHandler {
             }
         }
 
-        // **检查要消耗的实体 (Consumed) 是否存在**
+        // check if the consumed entity is valid
         for (String entity : action.getConsumed()) {
             if (!entity.equalsIgnoreCase("health") && !currentRoom.hasEntity(entity) &&
                     currentPlayer.hasItem(entity) && !entitiesLoader.getRooms().containsKey(entity)) {
@@ -56,21 +56,19 @@ public class GameActionHandler {
             }
         }
 
-        // **检查要生成的实体 (Produced) 是否有效**
+        // check if the produced entity is valid
         for (String entity : action.getProduced()) {
 
             if (!entity.equalsIgnoreCase("health") && !currentRoom.hasEntity(entity) &&
                     entitiesLoader.getEntityByName(entity) == null && !entitiesLoader.getRooms().containsKey(entity)) {
 
-                // 返回无法创建该实体的信息
                 StringBuilder sb = new StringBuilder();
                 sb.append("You cannot create ").append(entity).append(" here.");
                 return sb.toString();
             }
         }
 
-
-        // **处理健康变化**
+        // handle health change
         if (action.getConsumed().contains("health")) {
             currentPlayer.decreaseHealth(1);
         }
@@ -78,15 +76,15 @@ public class GameActionHandler {
             currentPlayer.increaseHealth(1);
         }
 
-        // **处理消耗的实体**
+        // handle the consumed entity
         for (String entity : action.getConsumed()) {
-            if (entity.equalsIgnoreCase("health")) continue; // 🛑 已处理 health，跳过
+            if (entity.equalsIgnoreCase("health")) continue;
 
+            // if the entity is a room
             if (entitiesLoader.getRooms().containsKey(entity)) {
-                // **如果消耗的是一个房间**
-                currentRoom.removeExit(entity); // 从当前房间的出口中移除
+                currentRoom.removeExit(entity);
             } else {
-                // 先检查玩家背包
+                // check inventory of the player
                 Artefact artefactToRemove = null;
                 Iterator<Artefact> it = currentPlayer.getInventoryIterator();
                 while (it.hasNext()) {
@@ -105,22 +103,20 @@ public class GameActionHandler {
             }
         }
 
-        // **处理生成的实体**
+        //  handle the produced entity
         for (String entity : action.getProduced()) {
-            if (entity.equalsIgnoreCase("health")) continue; // 🛑 已处理 health，跳过
+            if (entity.equalsIgnoreCase("health")) continue;
 
             if (entitiesLoader.getRooms().containsKey(entity)) {
-                // **如果生成的是一个房间**
                 Room newRoom = entitiesLoader.getRooms().get(entity);
-                currentRoom.addExit(entity, newRoom); // 将新房间添加为当前房间的出口
+                currentRoom.addExit(entity, newRoom);
             } else {
-                // 否则尝试通过实体加载器获取物品
                 GameEntity newEntity = entitiesLoader.getEntityByName(entity);
                 if (newEntity != null) {
                     currentRoom.addEntity(newEntity);
                 }
             }
         }
-        return action.getNarration(); // 返回描述信息
+        return action.getNarration();
     }
 }

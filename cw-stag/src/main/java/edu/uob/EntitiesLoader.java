@@ -13,13 +13,16 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class EntitiesLoader {
+
     private final Map<String, Room> rooms;
-    private Room startingRoom;  // 修改为 Room 类型
-    private final Set<String> gameEntities;  // 用于存储所有有效的实体名称
+    private Room startingRoom;
+
+    //store all the valid entities
+    private final Set<String> gameEntities;
 
     public EntitiesLoader() {
         this.rooms = new LinkedHashMap<>();
-        this.gameEntities = new HashSet<>();  // 初始化 gameEntities 集合
+        this.gameEntities = new HashSet<>();
     }
 
     public Map<String, Room> getRooms() {
@@ -27,7 +30,7 @@ public class EntitiesLoader {
     }
 
     public GameEntity getEntityByName(String entityName) {
-        // 遍历所有房间中的 artefacts
+
         for (Room room : rooms.values()) {
             for (Artefact artefact : room.getArtefacts()) {
                 if (artefact.getName().equalsIgnoreCase(entityName)) {
@@ -45,7 +48,6 @@ public class EntitiesLoader {
                 }
             }
         }
-
         return null;
     }
 
@@ -66,14 +68,13 @@ public class EntitiesLoader {
             List<Graph> graphs = parser.getGraphs();
             Graph mainGraph = graphs.get(0);
 
-
             for (Graph locationSubgraph : mainGraph.getSubgraphs()) {
                 this.processLocation(locationSubgraph);
             }
 
             this.processPaths(mainGraph);
 
-            // 修改此处，确保获取到有效的 startingRoom
+            // ensure get the valid startingRoom
             if (startingRoom == null) {
                 for (Room room : rooms.values()) {
                     if (!room.getName().startsWith("cluster")) {
@@ -86,40 +87,29 @@ public class EntitiesLoader {
                 }
             }
 
-
-            // 添加实体到 gameEntities，并打印出来
+            // add entity to gameEntities and print
             for (Room room : rooms.values()) {
                 this.addRoomEntitiesToGameEntities(room);
             }
-
-
 
         } catch (IOException | ParseException e) {
             throw new RuntimeException("[EntitiesLoader] Error loading entities file", e);
         }
     }
 
-
     private void addRoomEntitiesToGameEntities(Room room) {
 
-
-        // 添加物品（artefacts）
+        // add artefacts、furniture and characters
         for (Artefact artefact : room.getArtefacts()) {
-            gameEntities.add(artefact.getName());  // 添加物品名称
+            gameEntities.add(artefact.getName());
 
         }
-
-
-        // 添加家具（furniture）
         for (Furniture furniture : room.getFurniture()) {
-            gameEntities.add(furniture.getName());  // 添加家具名称
+            gameEntities.add(furniture.getName());
         }
-
-        // 添加角色（characters）
         for (Character character : room.getCharacters()) {
-            gameEntities.add(character.getName());  // 添加角色名称
+            gameEntities.add(character.getName());
         }
-
     }
 
     private void processEntities(Graph entitySubgraph, Room room, String entityType) {
@@ -128,7 +118,6 @@ public class EntitiesLoader {
         }
 
         List<Node> entityNodes = entitySubgraph.getNodes(false);
-
 
         for (Node entityNode : entityNodes) {
             String entityName = entityNode.getId().getId();
@@ -156,36 +145,33 @@ public class EntitiesLoader {
         }
     }
 
-
     private void processClusterSubgraph(Graph clusterSubgraph) {
         List<Node> nodes = clusterSubgraph.getNodes(false);
         if (nodes.isEmpty()) {
             return;
         }
 
-        // 获取 cluster 下的第一个节点作为房间名称
+        // use the next node of the cluster as the name of room
         Node firstNode = nodes.get(0);
         String roomName = firstNode.getId().getId();
         String roomDescription = firstNode.getAttribute("description");
 
-
-        // 确保不会覆盖已存在的房间
+        // ensure not to cover the existing room
         if (!rooms.containsKey(roomName)) {
             Room room = new Room(roomName, roomDescription);
             rooms.put(roomName, room);
 
-            // **设置第一个房间为 startingRoom**
+            // set the first room to startingRoom
             if (startingRoom == null) {
                 startingRoom = room;
             }
 
-            // 处理房间中的子元素（artefacts、furniture、characters）
+            // handle entities（artefacts、furniture、characters）
             for (Graph subgraph : clusterSubgraph.getSubgraphs()) {
                 this.processEntities(subgraph, room, subgraph.getId().getId());
             }
         }
     }
-
 
     private void processLocation(Graph locationSubgraph) {
 
@@ -199,10 +185,12 @@ public class EntitiesLoader {
     }
 
     private void processPaths(Graph mainGraph) {
-        // 只处理 subgraph paths 中定义的路径
+
+        // only handle paths defined in subgraph paths
         for (Graph subgraph : mainGraph.getSubgraphs()) {
             if (subgraph.getId().getId().equals("paths")) {
-                // 获取 subgraph paths 中的所有连接
+
+                // get all the connections in subgraph paths
                 for (Edge edge : subgraph.getEdges()) {
                     String fromRoomName = edge.getSource().getNode().getId().getId();
                     String toRoomName = edge.getTarget().getNode().getId().getId();

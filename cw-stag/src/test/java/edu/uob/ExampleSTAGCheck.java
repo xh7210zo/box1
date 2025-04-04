@@ -10,8 +10,7 @@ import java.io.File;
 import java.nio.file.Paths;
 import java.time.Duration;
 
-class ExampleSTAGTestss {
-    private boolean setupExecuted;
+class ExampleSTAGCheck {
     private GameServer server;
 
     // Create a new server _before_ every @Test
