@@ -5,9 +5,11 @@ import java.util.*;
 public class BuiltinCommandProcess {
 
     private final Player currentPlayer;
+    private final GameServer gameServer;
 
-    public BuiltinCommandProcess(Player currentPlayer) {
+    public BuiltinCommandProcess(Player currentPlayer, GameServer gameServer) {
         this.currentPlayer = currentPlayer;
+        this.gameServer = gameServer;
     }
 
     public String handleBuiltinCommand(String action, Set<String> subjects) {
@@ -106,7 +108,28 @@ public class BuiltinCommandProcess {
             connectedRoomList.append(room.getName()).append("\n");
         }
 
-        // return all the information
+        // get all the players in the room other than self
+        StringBuilder playersInRoomList = new StringBuilder();
+        boolean hasOtherPlayers = false;
+
+        Set<String> allPlayers = gameServer.getAllPlayers();
+        for (String playerName : allPlayers) {
+            if (!playerName.equals(currentPlayer.getName())) {
+                Player player = gameServer.getPlayer(playerName);
+                if (player.getCurrentRoom().equals(currentRoom)) {
+                    if (!hasOtherPlayers) {
+                        playersInRoomList.append("Other players in the room:\n");
+                        hasOtherPlayers = true;
+                    }
+                    playersInRoomList.append(player.getName()).append("\n");
+                }
+            }
+        }
+
+        if (!hasOtherPlayers) {
+            playersInRoomList.append("No other players in the room.\n");
+        }
+
         StringBuilder result = new StringBuilder();
         result.append("You are in: ").append(currentRoom.getName()).append("\n")
                 .append(roomDescription).append("\n")
@@ -116,7 +139,9 @@ public class BuiltinCommandProcess {
                 .append(furnitureList)
                 .append(charactersList)
                 .append("Paths to other rooms:\n")
-                .append(connectedRoomList);
+                .append(connectedRoomList)
+                .append(playersInRoomList);
+
         return result.toString();
     }
 

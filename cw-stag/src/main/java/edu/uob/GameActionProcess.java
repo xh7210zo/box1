@@ -29,7 +29,6 @@ public class GameActionProcess {
             subjects.add(subjectIterator.next());
         }
 
-
         // If some subjects are missing, we attempt partial matching
         if (!subjects.isEmpty() && !subjects.containsAll(allSubjects)) {
             // Try to match missing subjects by context or assumption
@@ -50,10 +49,8 @@ public class GameActionProcess {
         return "You can't do that right now.";
     }
 
-
     private String executeGameAction(GameAction action) {
         Room currentRoom = currentPlayer.getCurrentRoom();
-
 
         // check if the subject exists in the inventory or room
         for (String subject : action.getSubjects()) {

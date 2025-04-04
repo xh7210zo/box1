@@ -16,7 +16,7 @@ public final class GameServer {
     private static final char END_OF_TRANSMISSION = 4;
     private final EntitiesLoader entitiesLoader;
     private final Map<String, GameAction> actions;
-    private final Player currentPlayer;
+    private final Map<String, Player> players = new HashMap<>();
     Set<String> decorativeWords = new HashSet<>(Arrays.asList("please", "the", "using", "with", "to"));
 
     public static void main(String[] args) throws IOException {
@@ -55,7 +55,9 @@ public final class GameServer {
             throw new IllegalStateException("[GameServer] Error: No valid starting room found! Please check your .dot file.");
         }
 
-        this.currentPlayer = new Player("simon", startingRoom, entitiesLoader);
+        String initialPlayerName = "simon";
+        Player initialPlayer = new Player(initialPlayerName, startingRoom, entitiesLoader);
+        players.put(initialPlayerName, initialPlayer);
 
         // add actionsLoader and get action list
         ActionsLoader actionsLoader = new ActionsLoader();
@@ -70,6 +72,17 @@ public final class GameServer {
     * @param command The incoming command to be processed
     */
     public String handleCommand(String command) {
+        String playerName = extractPlayerName(command);
+        if (!isValidPlayerName(playerName)) {
+            return "Invalid player name.";
+        }
+
+        // Retrieve or create the player
+        Player player = players.get(playerName);
+        if (player == null) {
+            player = createNewPlayer(playerName);
+            players.put(playerName, player);
+        }
 
         // 1. Remove modifiers and convert to lowercase
         CommandParser commandParser = new CommandParser(decorativeWords);
@@ -90,16 +103,40 @@ public final class GameServer {
         }
 
         // 5. Handle built-in commands
-        BuiltinCommandProcess builtinCommandHandler = new BuiltinCommandProcess(currentPlayer);
+        BuiltinCommandProcess builtinCommandHandler = new BuiltinCommandProcess(player,this);
         if (isBuiltinCommand(actionVerb)) {
             return builtinCommandHandler.handleBuiltinCommand(actionVerb, commandWords);
         }
 
         // 6. Handle game actions with partial subject matching
-        GameActionProcess actionHandler = new GameActionProcess(actions, currentPlayer, entitiesLoader);
+        GameActionProcess actionHandler = new GameActionProcess(actions, player, entitiesLoader);
         return actionHandler.handleGameAction(actionVerb, subjectIterator);
     }
 
+    private String extractPlayerName(String command) {
+        int colonIndex = command.indexOf(":");
+        if (colonIndex == -1) {
+            return null;  // No colon means no player name
+        }
+        return command.substring(0, colonIndex).trim();
+    }
+
+    private boolean isValidPlayerName(String playerName) {
+        if (playerName == null || playerName.isEmpty()) {
+            return false;
+        }
+        for (char c : playerName.toCharArray()) {
+            if (!((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == ' ' || c == '\'' || c == '-')) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private Player createNewPlayer(String playerName) {
+        Room startingRoom = entitiesLoader.getStartingRoom();
+        return new Player(playerName, startingRoom, entitiesLoader);
+    }
 
     public boolean isBuiltinCommand(String action) {
         // check if it is built-in command
@@ -134,8 +171,13 @@ public final class GameServer {
         }
         return null;
     }
-    public String getCurrentPlayerName() {
-        return currentPlayer.getName();
+
+    public Set<String> getAllPlayers() {
+        return players.keySet();
+    }
+
+    public Player getPlayer(String playerName) {
+        return players.get(playerName);
     }
 
     /**

@@ -50,8 +50,6 @@ class ExampleSTAGTests {
       assertTrue(response.contains("wooden trapdoor"), "Did not see description of furniture in response to look");
       assertTrue(response.contains("forest"), "Did not see available paths in response to look");
 
-        System.out.println("Current player name: " + server.getCurrentPlayerName());
-
     }
 
 
@@ -140,7 +138,6 @@ class ExampleSTAGTests {
       sendCommandToServer("simon: coin get");
       sendCommandToServer("simon: goto cellar");
       response = sendCommandToServer("simon: pay elf coin");
-      System.out.print("response:"+ response);
       assertTrue(response.contains("shovel"), "Shovel should be received after paying elf");
 
 //
@@ -194,6 +191,9 @@ class ExampleSTAGTests {
 
       response = sendCommandToServer("simon: look");
       assertTrue(response.contains("cutter"), "Lumberjack should be in the room after blowing horn");
+
+      sendCommandToServer("masiwei: look");
+      sendCommandToServer("simon: goto cabin");
 
   }
 
