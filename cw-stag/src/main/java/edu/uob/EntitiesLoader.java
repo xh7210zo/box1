@@ -52,11 +52,11 @@ public class EntitiesLoader {
     }
 
     public Room getStartingRoom() {
-        return startingRoom;  // 返回 Room 类型
+        return startingRoom;
     }
 
     public Set<String> getGameEntities() {
-        return gameEntities;  // 提供访问 gameEntities 集合的方法
+        return gameEntities;
     }
 
     public void loadEntities(File entitiesFile) {

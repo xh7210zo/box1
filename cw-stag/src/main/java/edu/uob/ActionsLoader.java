@@ -26,7 +26,7 @@ public class ActionsLoader {
 
             // parse .xml and get all the action elements
             Document doc = builder.parse(actionsFile);
-            doc.getDocumentElement().normalize(); // 规范化 XML 结构
+            doc.getDocumentElement().normalize();
             NodeList actionNodes = doc.getElementsByTagName("action");
 
             //go through all the action nodes

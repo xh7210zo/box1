@@ -55,7 +55,7 @@ public final class GameServer {
             throw new IllegalStateException("[GameServer] Error: No valid starting room found! Please check your .dot file.");
         }
 
-        this.currentPlayer = new Player("Player1", startingRoom, entitiesLoader);
+        this.currentPlayer = new Player("simon", startingRoom, entitiesLoader);
 
         // add actionsLoader and get action list
         ActionsLoader actionsLoader = new ActionsLoader();
@@ -133,6 +133,9 @@ public final class GameServer {
             }
         }
         return null;
+    }
+    public String getCurrentPlayerName() {
+        return currentPlayer.getName();
     }
 
     /**

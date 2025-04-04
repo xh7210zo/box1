@@ -29,6 +29,7 @@ public class GameActionProcess {
             subjects.add(subjectIterator.next());
         }
 
+
         // If some subjects are missing, we attempt partial matching
         if (!subjects.isEmpty() && !subjects.containsAll(allSubjects)) {
             // Try to match missing subjects by context or assumption

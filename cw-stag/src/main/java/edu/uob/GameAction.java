@@ -5,10 +5,10 @@ import java.util.HashSet;
 
 public class GameAction {
 
-    private final Set<String> subjects;  // 动作的主体
-    private final Set<String> consumed;  // 消耗品
-    private final Set<String> produced;  // 产生物品
-    private final String narration;      // 叙述
+    private final Set<String> subjects;
+    private final Set<String> consumed;
+    private final Set<String> produced;
+    private final String narration;
 
     public GameAction(Set<String> subjects, Set<String> consumed, Set<String> produced, String narration) {
         this.subjects = new HashSet<>(subjects);
